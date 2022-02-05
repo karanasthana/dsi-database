@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <string>
+#include <string.h>
 
 #include "Defs.h"
 #include "ParseTree.h"
@@ -14,7 +16,7 @@
 #include "Comparison.h"
 #include "ComparisonEngine.h"
 
-
+using namespace std;
 
 // Basic record data structure. Data is actually stored in "bits" field. The layout of bits is as follows:
 //	1) First sizeof(int) bytes: length of the record in bytes
@@ -65,6 +67,12 @@ public:
 	// prints the contents of the record; this requires
 	// that the schema also be given so that the record can be interpreted
 	void Print (Schema *mySchema);
+
+	// outputs the contents of the record; this requires
+	// that the schema also be given so that the record can be interpreted
+	// std::string Record::PrintString (Schema *mySchema);
+	string PrintString (Schema *mySchema);
+	// string PrintString (Schema *mySchema);
 };
 
 #endif

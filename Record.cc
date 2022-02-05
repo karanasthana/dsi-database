@@ -1,10 +1,12 @@
 #include "Record.h"
 
 #include <string.h>
+#include <string>
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
 
+using namespace std;
 
 Record :: Record () {
 	bits = NULL;
@@ -360,6 +362,74 @@ void Record :: Print (Schema *mySchema) {
 	}
 
 	cout << "\n";
+}
+
+string Record :: PrintString (Schema *mySchema) {
+
+	int n = mySchema->GetNumAtts();
+	Attribute *atts = mySchema->GetAtts();
+
+	cout << "initializing string" << endl;
+	string result = "";
+
+	cout << "starting for loop" << endl;
+	// loop through all of the attributes
+	for (int i = 0; i < n; i++) {
+
+		// print the attribute name
+		cout << atts[i].name << ": ";
+		result = result + atts[i].name + ": ";
+
+		// use the i^th slot at the head of the record to get the
+		// offset to the correct attribute in the record
+		int pointer = ((int *) bits)[i + 1];
+
+		// here we determine the type, which given in the schema;
+		// depending on the type we then print out the contents
+		cout << "[";
+		result = result + "[";
+
+		// first is integer
+		if (atts[i].myType == Int) {
+			int *myInt = (int *) &(bits[pointer]);
+			cout << *myInt;	
+			result = result + to_string(*myInt);
+
+		// then is a double
+		} else if (atts[i].myType == Double) {
+			double *myDouble = (double *) &(bits[pointer]);
+			cout << *myDouble;	
+			result = result + to_string(*myDouble);
+
+		// then is a character string
+		} else if (atts[i].myType == String) {
+			char *myString = (char *) &(bits[pointer]);
+			cout << myString;	
+			result = result + myString;
+		} 
+
+		cout << "]";
+		result = result + "]";
+
+		// print out a comma as needed to make things pretty
+		if (i != n - 1) {
+			cout << ", ";
+			result = result + ", ";
+		}
+	}
+
+	cout << "\n";
+	result = result + "\n";
+	cout << result << endl;
+
+	int n2 = result.length();
+
+	char char_array[n2 + 1];
+	// copying the contents of the
+	// string to char array
+	strcpy(char_array, result.c_str());
+
+	return result;
 }
 
 
