@@ -30,8 +30,8 @@ int main () {
 	myComparison.Print ();
 
 	// now open up the text file and start procesing it
-	FILE *tableFile = fopen ("/cise/homes/karanasthana/DSI/Project/tpch-dbgen/lineitem.tbl", "r");
-	FILE *tempFileToWrite = fopen ("/cise/homes/karanasthana/DSI/Project/temp_page_test.tbl", "w");
+	FILE *tableFile = fopen ("/cise/homes/karanasthana/git/dbi-project-impl/data-files/lineitem.tbl", "r");
+	FILE *tempFileToWrite = fopen ("/cise/homes/karanasthana/git/dbi-project-impl/data-files/temp_page_test.tbl", "w");
 	
 	Record temp;
 	Record temp2;
