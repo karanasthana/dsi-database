@@ -44,7 +44,7 @@ int main () {
 	//cout << " numbytes in rec " << ((int *) bits)[0] << endl;
 	//literal.Print (&supplier);
 
-        // read in all of the records from the text file and see if they match
+	// read in all of the records from the text file and see if they match
 	// the CNF expression that was typed in
 	int counter = 0;
 	int resultAppend = 0;
@@ -55,45 +55,29 @@ int main () {
 		 		cerr << counter << "\n";
 		 	}
 			temp2 = temp;
-			resultAppend = p2.Append(&temp);
-			if (resultAppend == 0) {
-				cout << "Error!!! out of page memory" <<endl;
-				break;
+			if (comp.Compare (&temp2, &literal, &myComparison)) {
+				resultAppend = p2.Append(&temp);
+				if (resultAppend == 0) {
+					cout << "Error!!! out of page memory" <<endl;
+					break;
+				}
+				string ss = temp2.PrintString (&mySchema);
+				cout << ss;
+				int n2 = ss.length();
+		
+				char char_array[n2 + 1];
+				// copying the contents of the
+				// string to char array
+				strcpy(char_array, ss.c_str());
+				
+				fprintf (tempFileToWrite, char_array);
+				cout << "Wrote to the file";
 			}
-			string ss = temp2.PrintString (&mySchema);
-			cout << ss;
-			int n2 = ss.length();
-	
-			char char_array[n2 + 1];
-			// copying the contents of the
-			// string to char array
-			strcpy(char_array, ss.c_str());
-			fprintf (tempFileToWrite, char_array);
-			cout << "Wrote to the file";
-	//	 	if (comp.Compare (&temp, &literal, &myComparison))
-		 	//			temp.Print (&mySchema);
 
 		}
 		fclose (tempFileToWrite);
 
 		int appendResult = 0;
 		counter = 0;
-	//	while (temp2.SuckNextRecord (&mySchema, tableFile) == 1) {
-	//		counter++;
-	//		if (counter % 10000 == 0) {
-	//			cerr << counter << "\n";
-	//		}
-	//		appendResult = p2.Append(&temp2);
-	//		cout << "Just after append result with result as : %d", appendResult;
-	//		if (appendResult == 0) {
-	//			cout << "Page Size complete!";
-	//			break;
-	//		}
-	//		//tempFileToWrite.
-	//		cout << "Appending complete";
-	//		temp2.Print (&mySchema);
-	//		fprintf (tempFileToWrite, "%s", counter);
-	//		//cout<<counter<<endl;
-	//	}
 
 }
