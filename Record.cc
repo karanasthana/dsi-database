@@ -362,5 +362,7 @@ void Record :: Print (Schema *mySchema) {
 	cout << "\n";
 }
 
-
+int Record :: getRecordSize () {
+	return ((int *)this->bits)[0];
+}
 

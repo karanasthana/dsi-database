@@ -65,6 +65,10 @@ public:
 	// prints the contents of the record; this requires
 	// that the schema also be given so that the record can be interpreted
 	void Print (Schema *mySchema);
+
+	// Returns the value of size of the relevant record. 
+	// Returns the value of ((int *)this->bits)[0]. The size of the record for the partiular bits
+	int getRecordSize();
 };
 
 #endif

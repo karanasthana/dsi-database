@@ -42,6 +42,8 @@ public:
 	// empty it out
 	void EmptyItOut ();
 
+	// returns the value of curSizeInBytes
+	int getCurrentPageSize();
 };
 
 
@@ -76,7 +78,6 @@ public:
 
 	// closes the file and returns the file length (in number of pages)
 	int Close ();
-
 };
 
 

@@ -18,6 +18,7 @@ DBFile::DBFile () {
     read = new Page();
     write = new Page();
     rec = new Record();
+    currentPage = 1;
 }
 
 int DBFile::Create (const char *f_path, fType f_type, void *startup) {
@@ -35,7 +36,6 @@ int DBFile::Create (const char *f_path, fType f_type, void *startup) {
 void DBFile::Load (Schema &f_schema, const char *loadpath) {
     cout << "load" << endl;
 
-
 }
 
 int DBFile::Open (const char *f_path) {
@@ -52,6 +52,11 @@ int DBFile::Open (const char *f_path) {
 void DBFile::MoveFirst () {
     cout << "move first" << endl;
 
+    // check if this has to be 0 or 1.
+    f->GetPage(read, 1);
+    read->GetFirst(rec);
+
+    return;
 }
 
 int DBFile::Close () {
@@ -62,10 +67,23 @@ int DBFile::Close () {
 
 void DBFile::Add (Record &rec) {
     cout << "add" << endl;
+    
+    if(write->getCurrentPageSize() + rec.getRecordSize() > PAGE_SIZE) {
+        f->AddPage(write, currentPage++);
+        write->EmptyItOut();
+    }
+
+    if(!write->Append(&rec)) {
+        cerr << "DBFile::AppendToPage - Error appending new record to the page." << endl;
+    }
+    return;
 }
 
 int DBFile::GetNext (Record &fetchme) {
     cout << "get next" << endl;
+
+    
+
     return 1;
 }
 

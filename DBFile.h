@@ -18,6 +18,7 @@ public:
 	Page *read;
 	Page *write;
 	Record *rec;
+	int currentPage;
 
 	DBFile ();
 

@@ -156,6 +156,10 @@ void Page :: FromBinary (char *bits) {
 	delete temp;
 }
 
+int Page :: getCurrentPageSize () {
+	return this->curSizeInBytes;
+}
+
 File :: File () {
 }
 
