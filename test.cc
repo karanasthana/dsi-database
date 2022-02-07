@@ -24,6 +24,7 @@ void test1 () {
 
 	dbfile.Load (*(rel->schema ()), tbl_path);
 	dbfile.Close ();
+	cout << "All Done!" << endl;
 }
 
 // sequential scan of a DBfile 

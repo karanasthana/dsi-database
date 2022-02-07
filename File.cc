@@ -201,14 +201,22 @@ void File :: AddPage (Page *addMe, off_t whichPage) {
 
 	// if we are trying to add past the end of the file, then
 	// zero all of the pages out
+	cout << endl << endl << "Inside Add Page function now!" << endl << endl;
+	cout << "which page ? " << whichPage << endl;
+	cout << "cur length ? " << curLength << endl;
 	if (whichPage >= curLength) {
 		
 		// do the zeroing
+		cout << "going inside the for loop with curLength " << curLength << "whichPage" << whichPage << endl;
+		cout << "Page Size " << PAGE_SIZE << endl;
+		cout << "SEEK_SET " << SEEK_SET << endl;
 		for (off_t i = curLength; i < whichPage; i++) {
 			int foo = 0;
 			lseek (myFilDes, PAGE_SIZE * i, SEEK_SET);
 			write (myFilDes, &foo, sizeof (int));
 		}
+
+		cout << "got out of the for loop " << endl;
 
 		// set the size
 		curLength = whichPage + 1;	
