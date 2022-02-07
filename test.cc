@@ -31,7 +31,10 @@ void test2 () {
 
 	DBFile dbfile;
 	dbfile.Open (rel->path());
+	cout << "GOING TO DO Move first inside test2" << endl << endl << endl;
 	dbfile.MoveFirst ();
+
+	cout << "DONE Move first inside test2" << endl << endl << endl;
 
 	Record temp;
 

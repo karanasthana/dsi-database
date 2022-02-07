@@ -36,6 +36,20 @@ int DBFile::Create (const char *f_path, fType f_type, void *startup) {
 void DBFile::Load (Schema &f_schema, const char *loadpath) {
     cout << "load" << endl;
 
+    FILE *tableFile = NULL;
+    tableFile = fopen(loadpath, "r");
+    if(tableFile == NULL) {
+        cerr << "error trying to open file: " << loadpath << endl;
+    }
+
+    Record *temp = new Record();
+
+    while (temp->SuckNextRecord (&f_schema, tableFile) == 1) {
+        // rec.Print (&f_schema);
+        Add(*(temp));
+    }
+    // delete temp;
+    fclose(tableFile);
 }
 
 int DBFile::Open (const char *f_path) {
@@ -61,6 +75,10 @@ void DBFile::MoveFirst () {
 
 int DBFile::Close () {
     cout << "close" << endl;
+
+    f->AddPage(write, currentPage++);
+    write->EmptyItOut();
+
     f->Close();
     return 1;
 }
@@ -69,11 +87,14 @@ void DBFile::Add (Record &rec) {
     cout << "add" << endl;
     
     if(write->getCurrentPageSize() + rec.getRecordSize() > PAGE_SIZE) {
+        cout << "Adding Page now " << endl;
         f->AddPage(write, currentPage++);
         write->EmptyItOut();
     }
 
-    if(!write->Append(&rec)) {
+    int appendResult = write->Append(&rec);
+    cout << "appending to write file had the result --> " << appendResult;
+    if (appendResult == 0) {
         cerr << "DBFile::AppendToPage - Error appending new record to the page." << endl;
     }
     return;
@@ -82,7 +103,7 @@ void DBFile::Add (Record &rec) {
 int DBFile::GetNext (Record &fetchme) {
     cout << "get next" << endl;
 
-    
+
 
     return 1;
 }
