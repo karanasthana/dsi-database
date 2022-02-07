@@ -18,7 +18,15 @@ public:
 	Page *read;
 	Page *write;
 	Record *rec;
-	int currentPage;
+	
+	bool hasRecordsLeft;
+	bool hasFileEnded;
+
+	off_t rIndex;
+	off_t wIndex;
+
+	ComparisonEngine *comp;
+
 
 	DBFile ();
 
