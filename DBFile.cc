@@ -12,7 +12,7 @@
 // stub file .. replace it with your own DBFile.cc
 
 DBFile::DBFile () {
-    cout << "Constructor" << endl;
+    // cout << "Constructor" << endl;
 
     f = new File();
     read = new Page();
@@ -30,13 +30,13 @@ DBFile::~DBFile() {
 }
 
 int DBFile::Create (const char *f_path, fType f_type, void *startup) {
-    cout << "create" << endl;
+    // cout << "create" << endl;
 
     if (f_path == NULL || f_path[0] == '\0' || f_type != heap) {
         return 0;
     }
 
-    cout << "error checking in create done " << endl;
+    // cout << "error checking in create done " << endl;
 
     f->Open(0, f_path);
     
@@ -46,16 +46,16 @@ int DBFile::Create (const char *f_path, fType f_type, void *startup) {
     wIndex = 1;
     rIndex = 1;
 
-    cout << "variable initialization done in create " << endl;
+    // cout << "variable initialization done in create " << endl;
 
-    cout << "windex - 51 " << wIndex << endl;
+    // cout << "windex - 51 " << wIndex << endl;
 
     return 1;
 }
 
 void DBFile::Load (Schema &f_schema, const char *loadpath) {
-    cout << "load" << endl;
-    cout << "write index  - 56 " << wIndex << endl;
+    // cout << "load" << endl;
+    // cout << "write index  - 56 " << wIndex << endl;
 
     FILE *tableFile = NULL;
     tableFile = fopen(loadpath, "r");
@@ -63,25 +63,25 @@ void DBFile::Load (Schema &f_schema, const char *loadpath) {
         cerr << "error trying to open file: " << loadpath << endl;
     }
 
-    cout << "write index  - 64 " << wIndex << endl;
+    // cout << "write index  - 64 " << wIndex << endl;
     Record *temp = new Record();
 
     while (temp->SuckNextRecord (&f_schema, tableFile) == 1) {
         // rec.Print (&f_schema);
         Add(*(temp));
     }
-    cout << "write index  - 77 " << wIndex << endl;
+    // cout << "write index  - 77 " << wIndex << endl;
     delete temp;
 
-    cout << "write index  - 80 " << wIndex << endl;
+    // cout << "write index  - 80 " << wIndex << endl;
 
     fclose(tableFile);
 
-    cout << "write index  - 84 " << wIndex << endl;
+    // cout << "write index  - 84 " << wIndex << endl;
 }
 
 int DBFile::Open (const char *f_path) {
-    cout << "open" << endl;
+    // cout << "open" << endl;
     if (f_path == NULL || f_path[0] == '\0') {
         return 0;
     }
@@ -95,7 +95,7 @@ int DBFile::Open (const char *f_path) {
 }
 
 void DBFile::MoveFirst () {
-    cout << "move first" << endl;
+    // cout << "move first" << endl;
 
     // check if this has to be 0 or 1.
     f->GetPage(read, 1);
@@ -105,10 +105,10 @@ void DBFile::MoveFirst () {
 }
 
 int DBFile::Close () {
-    cout << "close" << endl;
+    // cout << "close" << endl;
 
     if (hasRecordsLeft) {
-        cout << "Adding Page now from close with wIndex as " << wIndex << endl;
+        // cout << "Adding Page now from close with wIndex as " << wIndex << endl;
         WriteToFile();
     }
 
@@ -119,17 +119,17 @@ int DBFile::Close () {
 }
 
 void DBFile::Add (Record &rec) {
-    cout << "add" << endl;
+    // cout << "add" << endl;
 
     hasRecordsLeft = true;
     
     if(write->getCurrentPageSize() + rec.getRecordSize() > PAGE_SIZE) {
-        cout << "Adding Page now " << endl;
+        // cout << "Adding Page now " << endl;
         WriteToFile();
     }
 
     int appendResult = write->Append(&rec);
-    cout << "appending to write file had the result --> " << appendResult << endl;
+    // cout << "appending to write file had the result --> " << appendResult << endl;
     if (appendResult == 0) {
         cerr << "DBFile::AppendToPage - Error appending new record to the page." << endl;
     }
@@ -137,7 +137,7 @@ void DBFile::Add (Record &rec) {
 }
 
 int DBFile::GetNext (Record &fetchme) {
-    cout << "get next" << endl;
+    //cout << "get next" << endl;
 
     if(!hasFileEnded) {
         fetchme.Copy(rec);
@@ -155,7 +155,7 @@ int DBFile::GetNext (Record &fetchme) {
 }
 
 int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
-    cout << "get next 2" << endl;
+    //cout << "get next 2" << endl;
 
     if(hasFileEnded) {
         return 0;
@@ -171,12 +171,12 @@ int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
         if (result == 1) {
             return 1;
         }
-        cout << "Checking for condition" << endl;
+        //cout << "Checking for condition" << endl;
     }
 }
 
 void DBFile::WriteToFile() {
     f->AddPage(write, wIndex++);
-    cout << "Add Page complete!";
+    // cout << "Add Page complete!";
     write->EmptyItOut();
 }
