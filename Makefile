@@ -1,17 +1,27 @@
-CC = g++ -O2 -Wno-deprecated 
+CC = g++ -O2 -Wno-deprecated -std=c++11 
+
+LD_FLAGS = -l pthread -lgtest
 
 tag = -i
+test_out_tag = -ll
 
 ifdef linux
 tag = -n
+test_out_tag = -lfl
 endif
 
+gtest: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o DBFile_test.o
+	$(CC) -o gtest Record.o DBFile_test.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o $(test_out_tag) $(LD_FLAGS)
+
 test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o
-	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o -lfl
+	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o $(test_out_tag)
 	
 main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
-	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o -lfl
+	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o $(test_out_tag)
 	
+DBFile_test.o:
+	$(CC) -g -c DBFile_test.cc
+
 test.o: test.cc
 	$(CC) -g -c test.cc
 
@@ -38,7 +48,7 @@ Schema.o: Schema.cc
 	
 y.tab.o: Parser.y
 	yacc -d Parser.y
-	sed $(tag) y.tab.c -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/" 
+	sed $(tag) -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/" y.tab.c 
 	g++ -c y.tab.c
 
 lex.yy.o: Lexer.l
@@ -51,3 +61,6 @@ clean:
 	rm -f y.tab.c
 	rm -f lex.yy.c
 	rm -f y.tab.h
+
+uninstall:	clean
+	rm -f main gtest *.bin
