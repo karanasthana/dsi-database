@@ -42,6 +42,8 @@ public:
 	// empty it out
 	void EmptyItOut ();
 
+	// returns the value of curSizeInBytes
+	int getCurrentPageSize();
 };
 
 
@@ -64,7 +66,7 @@ public:
 	// the file; if notNew is zero, then the file is created and any other
 	// file located at that location is erased.  Otherwise, the file is
 	// simply opened
-	void Open (int length, char *fName);
+	void Open (int length, const char *fName);
 
 	// allows someone to explicitly get a specified page from the file
 	void GetPage (Page *putItHere, off_t whichPage);
@@ -76,7 +78,6 @@ public:
 
 	// closes the file and returns the file length (in number of pages)
 	int Close ();
-
 };
 
 

@@ -31,10 +31,10 @@ int main () {
 	myComparison.Print ();
 
 	// now open up the text file and start procesing it
-        FILE *tableFile = fopen ("/cise/homes/karanasthana/git/dbi-project-impl/data-files/lineitem.tbl", "r");
+	FILE *tableFile = fopen ("/cise/homes/prateek.agrawal/git/dsi-database/data-files/lineitem.tbl", "r");
 
-        Record temp;
-        Schema mySchema ("catalog", "lineitem");
+	Record temp;
+	Schema mySchema ("catalog", "lineitem");
 
 	//char *bits = literal.GetBits ();
 	//cout << " numbytes in rec " << ((int *) bits)[0] << endl;

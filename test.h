@@ -23,26 +23,27 @@ private:
 public:
 	relation (const char *_name, Schema *_schema, const char *_prefix) :
 		rname (_name), rschema (_schema), prefix (_prefix) {
-		sprintf (rpath, "%s%s.bin", prefix, rname);
-	}
-	const char* name () { return rname; }
-	const char* path () { return rpath; }
-	Schema* schema () { return rschema;}
-	void info () {
-		cout << " relation info\n";
-		cout << "\t name: " << name () << endl;
-		cout << "\t path: " << path () << endl;
-	}
-
-	void get_cnf (CNF &cnf_pred, Record &literal) {
-		cout << " Enter CNF predicate (when done press ctrl-D):\n\t";
-  		if (yyparse() != 0) {
-			std::cout << "Can't parse your CNF.\n";
-			exit (1);
+			sprintf (rpath, "%s%s.bin", prefix, rname);
 		}
-		cnf_pred.GrowFromParseTree (final, schema (), literal); // constructs CNF predicate
-	}
-};
+		const char* name () { return rname; }
+		const char* path () { return rpath; }
+		Schema* schema () { return rschema;}
+		
+		void info () {
+			cout << " relation info\n";
+			cout << "\t name: " << name () << endl;
+			cout << "\t path: " << path () << endl;
+		}
+
+		void get_cnf (CNF &cnf_pred, Record &literal) {
+			cout << " Enter CNF predicate (when done press ctrl-D):\n\t";
+			if (yyparse() != 0) {
+				std::cout << "Can't parse your CNF.\n";
+				exit (1);
+			}
+			cnf_pred.GrowFromParseTree (final, schema (), literal); // constructs CNF predicate
+		}
+	};
 
 const char *supplier = "supplier"; 
 const char *partsupp = "partsupp"; 

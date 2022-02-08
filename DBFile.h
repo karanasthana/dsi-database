@@ -14,8 +14,23 @@ typedef enum {heap, sorted, tree} fType;
 
 class DBFile {
 
+private:
+	File *f;
+	Page *read;
+	Page *write;
+	Record *rec;
+	
+	bool hasRecordsLeft;
+	bool hasFileEnded;
+
+	off_t rIndex;
+	off_t wIndex;
+
+	ComparisonEngine *comp;
+	void WriteToFile();
 public:
-	DBFile (); 
+	DBFile ();
+	~DBFile ();
 
 	int Create (const char *fpath, fType file_type, void *startup);
 	int Open (const char *fpath);

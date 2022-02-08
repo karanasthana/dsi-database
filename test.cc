@@ -4,7 +4,7 @@
 
 // make sure that the file path/dir information below is correct
 const char *dbfile_dir = ""; // dir where binary heap files should be stored
-const char *tpch_dir ="/cise/homes/karanasthana/git/dbi-project-impl/data-files"; // dir where dbgen tpch files (extension *.tbl) can be found
+const char *tpch_dir ="/cise/homes/prateek.agrawal/git/dsi-database/data-files/"; // dir where dbgen tpch files (extension *.tbl) can be found
 const char *catalog_path = "catalog"; // full path of the catalog file
 
 using namespace std;
@@ -24,6 +24,7 @@ void test1 () {
 
 	dbfile.Load (*(rel->schema ()), tbl_path);
 	dbfile.Close ();
+	cout << "All Done!" << endl;
 }
 
 // sequential scan of a DBfile 
@@ -31,7 +32,10 @@ void test2 () {
 
 	DBFile dbfile;
 	dbfile.Open (rel->path());
+	cout << "GOING TO DO Move first inside test2" << endl << endl << endl;
 	dbfile.MoveFirst ();
+
+	cout << "DONE Move first inside test2" << endl << endl << endl;
 
 	Record temp;
 
