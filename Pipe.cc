@@ -69,20 +69,22 @@ void Pipe :: Insert (Record *insertMe) {
 
 
 int Pipe :: Remove (Record *removeMe) {
-	 
+	//  cout<<"Line 72 in Pipe -> Remove \n";
+
 	// first, get a mutex on the pipeline
 	pthread_mutex_lock (&pipeMutex);
 
 	// next, see if there is anything in the pipeline; if
 	// there is, then do the removal
+	// cout << "checking if lastSlot == firstSlot" << (lastSlot == firstSlot);
 	if (lastSlot != firstSlot) {
 		
 		removeMe->Consume (&buffered [firstSlot % totSpace]);
 
-	// if there is not, then we need to wait until the producer
-	// puts some data into the pipeline
+		// if there is not, then we need to wait until the producer
+		// puts some data into the pipeline
+	
 	} else {
-
 		// the pipeline is empty so we first see if this
 		// is because it was turned off
 		if (done) {
