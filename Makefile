@@ -10,23 +10,17 @@ tag = -n
 test_out_tag = -lfl
 endif
 
-gtest: Record.o Comparison.o ComparisonEngine.o Schema.o File.o  BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o DBFile_test.o
-	$(CC) -o gtest Record.o DBFile_test.o Comparison.o ComparisonEngine.o Schema.o File.o  BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o $(test_out_tag) $(LD_FLAGS)
+gtest: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o DBFile_test.o
+	$(CC) -o gtest Record.o DBFile_test.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o lex.yy.o $(test_out_tag) $(LD_FLAGS)
 
-# test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o
-# 	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o $(test_out_tag)
+test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test.o
+	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o lex.yy.o test.o $(test_out_tag) -l pthread
 	
-# main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
-# 	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o $(test_out_tag)
-
-test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o test.o
-	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o test.o -lfl -lpthread
+main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
+	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o $(test_out_tag)
 	
-a1test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o Pipe.o y.tab.o lex.yy.o a1-test.o
-	$(CC) -o a1test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o Pipe.o y.tab.o lex.yy.o a1-test.o -lfl
-
-a1-test.o: a1-test.cc
-	$(CC) -g -c a1-test.cc
+DBFile_test.o:
+	$(CC) -g -c DBFile_test.cc
 
 test.o: test.cc
 	$(CC) -g -c test.cc
@@ -40,12 +34,6 @@ Comparison.o: Comparison.cc
 ComparisonEngine.o: ComparisonEngine.cc
 	$(CC) -g -c ComparisonEngine.cc
 	
-Pipe.o: Pipe.cc
-	$(CC) -g -c Pipe.cc
-
-BigQ.o: BigQ.cc
-	$(CC) -g -c BigQ.cc
-
 DBFile.o: DBFile.cc
 	$(CC) -g -c DBFile.cc
 
@@ -57,6 +45,12 @@ Record.o: Record.cc
 
 Schema.o: Schema.cc
 	$(CC) -g -c Schema.cc
+
+BigQ.o: BigQ.cc
+	$(CC) -g -c BigQ.cc
+
+Pipe.o: Pipe.cc
+	$(CC) -g -c Pipe.cc
 	
 y.tab.o: Parser.y
 	yacc -d Parser.y
