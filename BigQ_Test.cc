@@ -48,7 +48,7 @@ TEST(BigQ, TestAddRecordToCurrentRunMethod)
     dbfile.Create("nation.bin", heap, NULL);
     Schema *rschema = new Schema("catalog", "nation");
     char tbl_path[100];
-    sprintf(tbl_path, "%s%s.tbl", "/Users/prateek/Desktop/UF/Sem 2/DBI/dsi-database/data-files/", "nation");
+    sprintf(tbl_path, "%s%s.tbl", "/cise/homes/karanasthana/git/dbi-project-impl/data-files/", "nation");
     dbfile.Load(*rschema, tbl_path);
 
     int numRec = 0;
@@ -85,7 +85,7 @@ TEST(BigQ, TestLoadCurrentRunPriorityQueueMethod)
     dbfile.Create("nation.bin", heap, NULL);
     Schema *rschema = new Schema("catalog", "nation");
     char tbl_path[100];
-    sprintf(tbl_path, "%s%s.tbl", "/Users/prateek/Desktop/UF/Sem 2/DBI/dsi-database/data-files/", "nation");
+    sprintf(tbl_path, "%s%s.tbl", "/cise/homes/karanasthana/git/dbi-project-impl/data-files/", "nation");
     dbfile.Load(*rschema, tbl_path);
 
     int numRec = 0;
