@@ -7,7 +7,7 @@
 #include <fstream>
 #include <iostream>
 
-// Test to check worker thread initialization method
+// Test to check Initialization of worker
 TEST(BigQ, TestInitialization)
 {
     WorkerThread wt = {};
@@ -22,7 +22,7 @@ TEST(BigQ, TestInitialization)
     ASSERT_TRUE(wt.currPages != NULL);
 }
 
-// Test to check cleaup method
+// Test to check cleaup
 TEST(BigQ, TestCleanup)
 {
     WorkerThread wt = {};
@@ -30,12 +30,12 @@ TEST(BigQ, TestCleanup)
     wt.oPipe = new Pipe(10);
     CleanUp(&wt);
 
-    ifstream iFile;
-    iFile.open(wt.bigQFileName);
-    ASSERT_EQ(!iFile, true);
+    ifstream file;
+    file.open(wt.bigQFileName);
+    ASSERT_EQ(!file, true);
 }
 
-// Test to check adding records to run method
+// Test to check adding records to run
 TEST(BigQ, TestAddRecordsCurrRun)
 {
     WorkerThread wt = {
@@ -45,11 +45,11 @@ TEST(BigQ, TestAddRecordsCurrRun)
     InitWorkerThread(&wt);
 
     DBFile dbfile;
-    dbfile.Create("nation.bin", heap, NULL);
-    Schema *rschema = new Schema("catalog", "nation");
-    char tbl_path[100];
-    sprintf(tbl_path, "%s%s.tbl", "/cise/homes/prateek.agrawal/git/dsi-database/data-files/", "nation");
-    dbfile.Load(*rschema, tbl_path);
+    dbfile.Create("nation_3.bin", heap, NULL);
+    Schema *schema = new Schema("catalog", "nation");
+    char path[100];
+    sprintf(path, "%s%s.tbl", "/cise/homes/prateek.agrawal/git/dsi-database/data-files/", "nation");
+    dbfile.Load(*schema, path);
 
     int numRec = 0;
     Record temp;
@@ -60,16 +60,19 @@ TEST(BigQ, TestAddRecordsCurrRun)
     }
 
     int currRec = 0;
-    for (int i = 0; i < wt.runLength; i++)
+    int i=0;
+    while(i<wt.runLength)
     {
         while (wt.currPages[i].GetFirst(&temp))
         {
             currRec++;
         }
+        i++;
     }
+
     ASSERT_EQ(numRec, currRec);
     CleanUp(&wt);
-    remove("nation.bin");
+    remove("nation_3.bin");
 }
 
 // Test to check load current run priority queue method
@@ -82,11 +85,11 @@ TEST(BigQ, TestPutInPQ)
     InitWorkerThread(&wt);
 
     DBFile dbfile;
-    dbfile.Create("nation.bin", heap, NULL);
-    Schema *rschema = new Schema("catalog", "nation");
-    char tbl_path[100];
-    sprintf(tbl_path, "%s%s.tbl", "/cise/homes/prateek.agrawal/git/dsi-database/data-files/", "nation");
-    dbfile.Load(*rschema, tbl_path);
+    dbfile.Create("nation_2.bin", heap, NULL);
+    Schema *schema = new Schema("catalog", "nation");
+    char path[100];
+    sprintf(path, "%s%s.tbl", "/cise/homes/prateek.agrawal/git/dsi-database/data-files/", "nation");
+    dbfile.Load(*schema, path);
 
     int numRec = 0;
     Record temp;
@@ -102,17 +105,19 @@ TEST(BigQ, TestPutInPQ)
     ASSERT_EQ(numRec, pq.size());
 
     int currRec = 0;
-    for (int i = 0; i < wt.runLength; i++)
+    int i=0;
+    while(i<wt.runLength)
     {
         while (wt.currPages[i].GetFirst(&temp))
         {
             currRec++;
         }
+        i++;
     }
 
     ASSERT_EQ(currRec, 0);
     CleanUp(&wt);
-    remove("nation.bin");
+    remove("nation_2.bin");
 }
 
 int main(int argc, char **argv)

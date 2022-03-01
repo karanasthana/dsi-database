@@ -1,14 +1,14 @@
 #include "BigQ.h"
 
 BigQ::BigQ(Pipe &in, Pipe &out, OrderMaker &sortOrder, int runlen) {
-    // Initialize worker thread data.
+    // Initialize worker thread object with default values.
     WorkerThread *wt = new WorkerThread();
     wt->iPipe = &in;
     wt->oPipe = &out;
     wt->sortOrder = &sortOrder;
     wt->runLength = runlen;
 
-    // Create the worker thread.
+    // Creating pthread with the worker thread.
     pthread_create(&workerThread, NULL, TPMMS, (void *) wt);
 }
 
@@ -16,20 +16,25 @@ BigQ::~BigQ() {
     //destructor
 }
 
+//Implementation of Two Pass Multiway Merge Sort Algorithm
 void *TPMMS(void *tData) {
     WorkerThread *worker = (WorkerThread *) tData;
     InitWorkerThread(worker);
 
-    // Phase-1 (Generate sorted runs of runLength pages)
+    // Generating sorted runs of runLength pages
     GenerateRun(worker);
 
-    // Phase-2 (Merge sorted runs)
+    //Merging sorted runs
     MergeRuns(worker);
 
+    //Cleaning the worker object
     CleanUp(worker);
+
+    //Note: return nullptr else segmentation fault (IMP)
     return nullptr;
 }
 
+//Initializing the worker thread with relevant data
 void InitWorkerThread(WorkerThread *tData) {
     // Create buffer page array to store current runs' records
     Page *currPages = new(std::nothrow) Page[tData->runLength];
@@ -92,14 +97,19 @@ void CustomSortAndWrite(WorkerThread *worker) {
 // Put all the current run's record to the priority queue.
 void PutInPQ(WorkerThread *worker,
                                  priority_queue<Record *, vector<Record *>, RecordComparator> &pq) {
-    for (int i = 0; i <= worker->currPageNum; i++) {
-        Page *currPage = &worker->currPages[i];
+
+    int i=0;
+    int pageNum= worker->currPageNum;
+    while(i<=pageNum)
+    {
+        Page *currPage = &worker->currPages[i]; 
         Record *temp = new Record();
         while (currPage->GetFirst(temp)) {
             pq.push(temp);
             temp = new Record();
         }
         currPage->EmptyItOut();
+        i++;
     }
 }
 
@@ -157,7 +167,10 @@ void PQLoadMergeRun(WorkerThread *worker,
                                        vector<PriorityQueueStruct>,
                                        RecordComparator> &pq) {
     PriorityQueueStruct *pQStruct = new PriorityQueueStruct[worker->numberOfRuns];
-    for (int i = 0; i < worker->numberOfRuns; i++) {
+    int i=0;
+    int numRuns= worker->numberOfRuns;
+    while(i<numRuns)
+    {
         pQStruct[i].pqCurrPageNum = i * worker->runLength;
         pQStruct[i].pqMaxCurrRunPageNum =
                 std::min((off_t) pQStruct[i].pqCurrPageNum + worker->runLength - 1,
@@ -168,6 +181,7 @@ void PQLoadMergeRun(WorkerThread *worker,
         pQStruct[i].head = new Record();
         pQStruct[i].page->GetFirst(pQStruct[i].head);
         pq.push(pQStruct[i]);
+        i++;
     }
 }
 
