@@ -58,12 +58,14 @@ void GenerateRun(WorkerThread *tData) {
 
     while (tData->iPipe->Remove(next)) {
         if (!AddRecToCurrRun(tData, next)) {
-            CreateRun(tData);
+            CustomSortAndWrite(tData);
+            SetupNewRun(tData);
             AddRecToCurrRun(tData, next);
         }
     }
     do {
-        CreateRun(tData);
+        CustomSortAndWrite(tData);
+        SetupNewRun(tData);
     } while (tData->isOverflow);
 }
 
@@ -78,11 +80,6 @@ int AddRecToCurrRun(WorkerThread *tData, Record *next) {
         runPage->Append(next);
     }
     return 1;
-}
-
-void CreateRun(WorkerThread *worker) {
-    CustomSortAndWrite(worker);
-    SetupNewRun(worker);
 }
 
 void CustomSortAndWrite(WorkerThread *worker) {

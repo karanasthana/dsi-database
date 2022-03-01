@@ -61,8 +61,6 @@ void GenerateRun(WorkerThread *tData);
 
 int AddRecToCurrRun(WorkerThread *tData, Record *nextRecord);
 
-void CreateRun(WorkerThread *workerThread);
-
 void CustomSortAndWrite(WorkerThread *workerThread);
 
 void PutInPQ(WorkerThread *workerThread,priority_queue<Record *, vector<Record *>, RecordComparator> &pq);
