@@ -3,8 +3,8 @@
 BigQ::BigQ(Pipe &in, Pipe &out, OrderMaker &sortOrder, int runlen) {
     // Initialize worker thread data.
     WorkerThread *wt = new WorkerThread();
-    wt->inputPipe = &in;
-    wt->outputPipe = &out;
+    wt->iPipe = &in;
+    wt->oPipe = &out;
     wt->sortOrder = &sortOrder;
     wt->runLength = runlen;
 
@@ -32,14 +32,14 @@ void *TPMMS(void *threadData) {
 
 void InitWorkerThread(WorkerThread *threadData) {
     // Create buffer page array to store current runs' records
-    Page *currentRunPages = new(std::nothrow) Page[threadData->runLength];
-    if (currentRunPages == NULL) {
+    Page *currPages = new(std::nothrow) Page[threadData->runLength];
+    if (currPages == NULL) {
         cerr << "ERROR occured: Current Run Pages is null!!!\n";
         exit(1);
     }
 
-    threadData->currentRunPages = currentRunPages;
-    threadData->currentRunPageNumber = 0;
+    threadData->currPages = currPages;
+    threadData->currPageNum = 0;
     threadData->numberOfRuns = 0;
     threadData->isOverflow = false;
 
@@ -51,7 +51,7 @@ void InitWorkerThread(WorkerThread *threadData) {
 void RunGeneration(WorkerThread *threadData) {
     Record *nextRecord = new Record();
 
-    while (threadData->inputPipe->Remove(nextRecord)) {
+    while (threadData->iPipe->Remove(nextRecord)) {
         if (!AddRecordToCurrentRun(threadData, nextRecord)) {
             CreateRun(threadData);
             AddRecordToCurrentRun(threadData, nextRecord);
@@ -63,12 +63,12 @@ void RunGeneration(WorkerThread *threadData) {
 }
 
 int AddRecordToCurrentRun(WorkerThread *threadData, Record *nextRecord) {
-    Page *currentRunPage = &threadData->currentRunPages[threadData->currentRunPageNumber];
+    Page *currentRunPage = &threadData->currPages[threadData->currPageNum];
     if (!currentRunPage->Append(nextRecord)) {
-        if (threadData->currentRunPageNumber + 1 == threadData->runLength) {
+        if (threadData->currPageNum + 1 == threadData->runLength) {
             return 0;
         } else {
-            currentRunPage = &threadData->currentRunPages[++threadData->currentRunPageNumber];
+            currentRunPage = &threadData->currPages[++threadData->currPageNum];
         }
         currentRunPage->Append(nextRecord);
     }
@@ -92,8 +92,8 @@ void SortAndStoreCurrentRun(WorkerThread *workerThread) {
 // Put all the current run's record to the priority queue.
 void LoadCurrentRunPriorityQueue(WorkerThread *workerThread,
                                  priority_queue<Record *, vector<Record *>, RecordComparator> &pq) {
-    for (int i = 0; i <= workerThread->currentRunPageNumber; i++) {
-        Page *currentRunPage = &workerThread->currentRunPages[i];
+    for (int i = 0; i <= workerThread->currPageNum; i++) {
+        Page *currentRunPage = &workerThread->currPages[i];
         Record *temp = new Record();
         while (currentRunPage->GetFirst(temp)) {
             pq.push(temp);
@@ -111,13 +111,13 @@ void WritePriorityQueueContentToBigQFile(WorkerThread *workerThread,
     off_t currentPageIndexOfBigQFile =
             workerThread->bigQFile.GetLength() - 2 < 0 ? 0 : workerThread->bigQFile.GetLength() - 1;
     off_t maxRunPageNumber = currentPageIndexOfBigQFile + workerThread->runLength - 1;
-    int currentRunPageNumberOfOverflowRecords = 0;
+    int currPageNumOfOverflowRecords = 0;
 
     while (!pq.empty()) {
         // Overflow condition
         if (currentPageIndexOfBigQFile > maxRunPageNumber) {
-            if (!(&workerThread->currentRunPages[currentRunPageNumberOfOverflowRecords])->Append(pq.top())) {
-                currentRunPageNumberOfOverflowRecords++;
+            if (!(&workerThread->currPages[currPageNumOfOverflowRecords])->Append(pq.top())) {
+                currPageNumOfOverflowRecords++;
             } else {
                 pq.pop();
             }
@@ -141,7 +141,7 @@ void WritePriorityQueueContentToBigQFile(WorkerThread *workerThread,
 
 void ClearCurrentRun(WorkerThread *workerThread) {
     workerThread->numberOfRuns++;
-    workerThread->currentRunPageNumber = 0;
+    workerThread->currPageNum = 0;
 }
 
 void MergeRuns(struct WorkerThread *workerThread) {
@@ -149,7 +149,7 @@ void MergeRuns(struct WorkerThread *workerThread) {
 
     LoadMergeRunPriorityQueue(workerThread, pq);
 
-    LoadOutputPipeWithPriorityQueueData(workerThread, pq);
+    LoadoPipeWithPriorityQueueData(workerThread, pq);
 }
 
 void LoadMergeRunPriorityQueue(WorkerThread *workerThread,
@@ -171,13 +171,13 @@ void LoadMergeRunPriorityQueue(WorkerThread *workerThread,
     }
 }
 
-void LoadOutputPipeWithPriorityQueueData(WorkerThread *workerThread,
+void LoadoPipeWithPriorityQueueData(WorkerThread *workerThread,
                                          priority_queue<PriorityQueueStruct,
                                                  vector<PriorityQueueStruct>, RecordComparator> &pq) {
     while (!pq.empty()) {
         PriorityQueueStruct temp = pq.top();
         pq.pop();
-        workerThread->outputPipe->Insert(temp.head);
+        workerThread->oPipe->Insert(temp.head);
         if (!temp.page->GetFirst(temp.head)) {
             if (temp.currentPageNumber + 1 <= temp.maxPageNumberOfCurrentRun) {
                 temp.currentPageNumber++;
@@ -197,10 +197,10 @@ void CleanUp(WorkerThread *workerThread) {
     workerThread->bigQFile.Close();
     remove(workerThread->bigQFileName);
 
-    delete[] workerThread->currentRunPages;
+    delete[] workerThread->currPages;
 
     // Shut down output pipe.
-    if (workerThread->outputPipe) {
-        workerThread->outputPipe->ShutDown();
+    if (workerThread->oPipe) {
+        workerThread->oPipe->ShutDown();
     }
 }

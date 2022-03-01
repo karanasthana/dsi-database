@@ -13,13 +13,13 @@ TEST(BigQ, TestInitializeWorkerThreadMethod)
     WorkerThread wt = {};
     InitWorkerThread(&wt);
 
-    ifstream iFile;
-    iFile.open(wt.bigQFileName);
+    ifstream file;
+    file.open(wt.bigQFileName);
 
-    ASSERT_EQ(wt.currentRunPageNumber, 0);
+    ASSERT_EQ(wt.currPageNum, 0);
     ASSERT_EQ(wt.numberOfRuns, 0);
 
-    ASSERT_TRUE(wt.currentRunPages != NULL);
+    ASSERT_TRUE(wt.currPages != NULL);
 }
 
 // Test to check cleaup method
@@ -27,7 +27,7 @@ TEST(BigQ, TestCleanUpMethod)
 {
     WorkerThread wt = {};
     InitWorkerThread(&wt);
-    wt.outputPipe = new Pipe(10);
+    wt.oPipe = new Pipe(10);
     CleanUp(&wt);
 
     ifstream iFile;
@@ -40,7 +40,7 @@ TEST(BigQ, TestAddRecordToCurrentRunMethod)
 {
     WorkerThread wt = {
         .runLength = 1,
-        .currentRunPageNumber = 0,
+        .currPageNum = 0,
     };
     InitWorkerThread(&wt);
 
@@ -62,7 +62,7 @@ TEST(BigQ, TestAddRecordToCurrentRunMethod)
     int currRec = 0;
     for (int i = 0; i < wt.runLength; i++)
     {
-        while (wt.currentRunPages[i].GetFirst(&temp))
+        while (wt.currPages[i].GetFirst(&temp))
         {
             currRec++;
         }
@@ -77,7 +77,7 @@ TEST(BigQ, TestLoadCurrentRunPriorityQueueMethod)
 {
     WorkerThread wt = {
         .runLength = 1,
-        .currentRunPageNumber = 0,
+        .currPageNum = 0,
     };
     InitWorkerThread(&wt);
 
@@ -104,7 +104,7 @@ TEST(BigQ, TestLoadCurrentRunPriorityQueueMethod)
     int currRec = 0;
     for (int i = 0; i < wt.runLength; i++)
     {
-        while (wt.currentRunPages[i].GetFirst(&temp))
+        while (wt.currPages[i].GetFirst(&temp))
         {
             currRec++;
         }

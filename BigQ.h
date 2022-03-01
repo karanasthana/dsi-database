@@ -11,8 +11,8 @@
 using namespace std;
 
 struct WorkerThread {
-    Pipe *inputPipe;
-    Pipe *outputPipe;
+    Pipe *iPipe;
+    Pipe *oPipe;
     OrderMaker *sortOrder;
     int runLength;
 
@@ -20,8 +20,8 @@ struct WorkerThread {
     char bigQFileName[100];
     int numberOfRuns;
 
-    Page *currentRunPages;
-    int currentRunPageNumber;
+    Page *currPages;
+    int currPageNum;
 
     bool isOverflow;
 };
@@ -76,7 +76,7 @@ void MergeRuns(WorkerThread *workerThread);
 void LoadMergeRunPriorityQueue(WorkerThread *workerThread,
                                priority_queue<PriorityQueueStruct, vector<PriorityQueueStruct>, RecordComparator> &pq);
 
-void LoadOutputPipeWithPriorityQueueData(WorkerThread *workerThread,
+void LoadoPipeWithPriorityQueueData(WorkerThread *workerThread,
                                          priority_queue<PriorityQueueStruct, vector<PriorityQueueStruct>, RecordComparator> &pq);
 
 void CleanUp(WorkerThread *workerThread);
