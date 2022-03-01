@@ -10,7 +10,7 @@
 
 using namespace std;
 
-struct WorkerThreadData {
+struct WorkerThread {
     Pipe *inputPipe;
     Pipe *outputPipe;
     OrderMaker *sortOrder;
@@ -23,10 +23,10 @@ struct WorkerThreadData {
     Page *currentRunPages;
     int currentRunPageNumber;
 
-    bool overflowIsThere;
+    bool isOverflow;
 };
 
-struct PriorityQueueItem {
+struct PriorityQueueStruct {
     Page *page;
     Record *head;
 
@@ -46,7 +46,7 @@ struct RecordComparator {
         return cmp.Compare(lhs, rhs, this->sortOrder) > 0;
     }
 
-    bool operator()(const PriorityQueueItem &lhs, const PriorityQueueItem &rhs) {
+    bool operator()(const PriorityQueueStruct &lhs, const PriorityQueueStruct &rhs) {
         ComparisonEngine cmp;
         return cmp.Compare(lhs.head, rhs.head, this->sortOrder) > 0;
     }
@@ -55,33 +55,31 @@ struct RecordComparator {
 
 void *TPMMS(void *threadData);
 
-void InitializeWorkerThreadData(WorkerThreadData *threadData);
+void InitWorkerThread(WorkerThread *threadData);
 
-void RunGeneration(WorkerThreadData *threadData);
+void RunGeneration(WorkerThread *threadData);
 
-int AddRecordToCurrentRun(WorkerThreadData *threadData, Record *nextRecord);
+int AddRecordToCurrentRun(WorkerThread *threadData, Record *nextRecord);
 
-void CreateRun(WorkerThreadData *workerThreadData);
+void CreateRun(WorkerThread *workerThread);
 
-void SortAndStoreCurrentRun(WorkerThreadData *workerThreadData);
+void SortAndStoreCurrentRun(WorkerThread *workerThread);
 
-void LoadCurrentRunPriorityQueue(WorkerThreadData *workerThreadData,
-                                 priority_queue<Record *, vector<Record *>, RecordComparator> &pq);
+void LoadCurrentRunPriorityQueue(WorkerThread *workerThread,priority_queue<Record *, vector<Record *>, RecordComparator> &pq);
 
-void WritePriorityQueueContentToBigQFile(WorkerThreadData *workerThreadData,
-                                         priority_queue<Record *, vector<Record *>, RecordComparator> &pq);
+void WritePriorityQueueContentToBigQFile(WorkerThread *workerThread,priority_queue<Record *, vector<Record *>, RecordComparator> &pq);
 
-void ClearCurrentRun(WorkerThreadData *workerThreadData);
+void ClearCurrentRun(WorkerThread *workerThread);
 
-void MergeRuns(WorkerThreadData *workerThreadData);
+void MergeRuns(WorkerThread *workerThread);
 
-void LoadMergeRunPriorityQueue(WorkerThreadData *workerThreadData,
-                               priority_queue<PriorityQueueItem, vector<PriorityQueueItem>, RecordComparator> &pq);
+void LoadMergeRunPriorityQueue(WorkerThread *workerThread,
+                               priority_queue<PriorityQueueStruct, vector<PriorityQueueStruct>, RecordComparator> &pq);
 
-void LoadOutputPipeWithPriorityQueueData(WorkerThreadData *workerThreadData,
-                                         priority_queue<PriorityQueueItem, vector<PriorityQueueItem>, RecordComparator> &pq);
+void LoadOutputPipeWithPriorityQueueData(WorkerThread *workerThread,
+                                         priority_queue<PriorityQueueStruct, vector<PriorityQueueStruct>, RecordComparator> &pq);
 
-void CleanUp(WorkerThreadData *workerThreadData);
+void CleanUp(WorkerThread *workerThread);
 
 class BigQ {
 private:

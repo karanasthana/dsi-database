@@ -68,17 +68,17 @@ void *consumer (void *arg) {
 		i++;
 	}
 
-	cout << "t.write is " << t->write << "\n";
-	cout << "line 71 consumer: removed " << i << " recs from the pipe\n";
+	//cout << "t.write is " << t->write << "\n";
+	cout << "consumer: removed " << i << " recs from the pipe\n";
 
 	if (t->write) {
 		if (last) {
 			dbfile.Add (*last);
 		}
-		cerr << "line77 consumer: recs removed written out as heap DBFile at " << outfile << endl;
+		cerr << "consumer: recs removed written out as heap DBFile at " << outfile << endl;
 		dbfile.Close ();
 	}
-	cerr << "line 80 consumer: " << (i - err) << " recs out of " << i << " recs in sorted order \n";
+	cerr << "consumer: " << (i - err) << " recs out of " << i << " recs in sorted order \n";
 	if (err) {
 		cerr << " consumer: " <<  err << " recs failed sorted order test \n" << endl;
 	}
@@ -111,16 +111,16 @@ void test1 (int option, int runlen) {
 		tutil.write = true;
 	}
 	pthread_create (&thread2, NULL, consumer, (void *)&tutil);
-	cout << "line 114\n";
+	//cout << "line 114\n";
 
 	BigQ bq (input, output, sortorder, runlen);
 
-	cout << "line 118\n";
+	//cout << "line 118\n";
 
 	pthread_join (thread1, NULL);
-	cout << "line 123\n";
+	//cout << "line 123\n";
 	pthread_join (thread2, NULL);
-	cout << "line 125\n";
+	//cout << "line 125\n";
 }
 
 int main (int argc, char *argv[]) {
@@ -157,7 +157,7 @@ int main (int argc, char *argv[]) {
 	cin >> runlen;
 	
 	test1 (tindx, runlen);
-	cout << 'going in cleanup\n';
+	//cout << 'going in cleanup\n';
 	
 	cleanup ();
 }

@@ -38,7 +38,7 @@ TEST(DBFile, Close) {
 // Test case to Load and open the file
 TEST(DBFile, load) {
     DBFile dbfile;
-    dbfile.Load (*(new Schema ("catalog", nation)), "/cise/homes/karanasthana/git/dbi-project-impl/data-files/nation.tbl");
+    dbfile.Load (*(new Schema ("catalog", nation)), "/cise/homes/prateek.agrawal/git/dsi-database/data-files/nation.tbl");
 	dbfile.Open ("nation.bin");
 	dbfile.MoveFirst ();
 

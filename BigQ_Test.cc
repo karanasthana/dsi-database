@@ -8,47 +8,47 @@
 #include <iostream>
 
 // Test to check worker thread initialization method
-TEST(BigQ, TestInitializeWorkerThreadDataMethod)
+TEST(BigQ, TestInitializeWorkerThreadMethod)
 {
-    WorkerThreadData wtd = {};
-    InitializeWorkerThreadData(&wtd);
+    WorkerThread wt = {};
+    InitWorkerThread(&wt);
 
     ifstream iFile;
-    iFile.open(wtd.bigQFileName);
+    iFile.open(wt.bigQFileName);
 
-    ASSERT_EQ(wtd.currentRunPageNumber, 0);
-    ASSERT_EQ(wtd.numberOfRuns, 0);
+    ASSERT_EQ(wt.currentRunPageNumber, 0);
+    ASSERT_EQ(wt.numberOfRuns, 0);
 
-    ASSERT_TRUE(wtd.currentRunPages != NULL);
+    ASSERT_TRUE(wt.currentRunPages != NULL);
 }
 
 // Test to check cleaup method
 TEST(BigQ, TestCleanUpMethod)
 {
-    WorkerThreadData wtd = {};
-    InitializeWorkerThreadData(&wtd);
-    wtd.outputPipe = new Pipe(10);
-    CleanUp(&wtd);
+    WorkerThread wt = {};
+    InitWorkerThread(&wt);
+    wt.outputPipe = new Pipe(10);
+    CleanUp(&wt);
 
     ifstream iFile;
-    iFile.open(wtd.bigQFileName);
+    iFile.open(wt.bigQFileName);
     ASSERT_EQ(!iFile, true);
 }
 
 // Test to check adding records to run method
 TEST(BigQ, TestAddRecordToCurrentRunMethod)
 {
-    WorkerThreadData wtd = {
+    WorkerThread wt = {
         .runLength = 1,
         .currentRunPageNumber = 0,
     };
-    InitializeWorkerThreadData(&wtd);
+    InitWorkerThread(&wt);
 
     DBFile dbfile;
     dbfile.Create("nation.bin", heap, NULL);
     Schema *rschema = new Schema("catalog", "nation");
     char tbl_path[100];
-    sprintf(tbl_path, "%s%s.tbl", "/cise/homes/karanasthana/git/dbi-project-impl/data-files/", "nation");
+    sprintf(tbl_path, "%s%s.tbl", "/cise/homes/prateek.agrawal/git/dsi-database/data-files/", "nation");
     dbfile.Load(*rschema, tbl_path);
 
     int numRec = 0;
@@ -56,36 +56,36 @@ TEST(BigQ, TestAddRecordToCurrentRunMethod)
     while (dbfile.GetNext(temp))
     {
         numRec++;
-        AddRecordToCurrentRun(&wtd, &temp);
+        AddRecordToCurrentRun(&wt, &temp);
     }
 
     int currRec = 0;
-    for (int i = 0; i < wtd.runLength; i++)
+    for (int i = 0; i < wt.runLength; i++)
     {
-        while (wtd.currentRunPages[i].GetFirst(&temp))
+        while (wt.currentRunPages[i].GetFirst(&temp))
         {
             currRec++;
         }
     }
     ASSERT_EQ(numRec, currRec);
-    CleanUp(&wtd);
+    CleanUp(&wt);
     remove("nation.bin");
 }
 
 // Test to check load current run priority queue method
 TEST(BigQ, TestLoadCurrentRunPriorityQueueMethod)
 {
-    WorkerThreadData wtd = {
+    WorkerThread wt = {
         .runLength = 1,
         .currentRunPageNumber = 0,
     };
-    InitializeWorkerThreadData(&wtd);
+    InitWorkerThread(&wt);
 
     DBFile dbfile;
     dbfile.Create("nation.bin", heap, NULL);
     Schema *rschema = new Schema("catalog", "nation");
     char tbl_path[100];
-    sprintf(tbl_path, "%s%s.tbl", "/cise/homes/karanasthana/git/dbi-project-impl/data-files/", "nation");
+    sprintf(tbl_path, "%s%s.tbl", "/cise/homes/prateek.agrawal/git/dsi-database/data-files/", "nation");
     dbfile.Load(*rschema, tbl_path);
 
     int numRec = 0;
@@ -93,25 +93,25 @@ TEST(BigQ, TestLoadCurrentRunPriorityQueueMethod)
     while (dbfile.GetNext(temp))
     {
         numRec++;
-        AddRecordToCurrentRun(&wtd, &temp);
+        AddRecordToCurrentRun(&wt, &temp);
     }
 
     priority_queue<Record *, vector<Record *>, RecordComparator> pq(new OrderMaker());
-    LoadCurrentRunPriorityQueue(&wtd, pq);
+    LoadCurrentRunPriorityQueue(&wt, pq);
 
     ASSERT_EQ(numRec, pq.size());
 
     int currRec = 0;
-    for (int i = 0; i < wtd.runLength; i++)
+    for (int i = 0; i < wt.runLength; i++)
     {
-        while (wtd.currentRunPages[i].GetFirst(&temp))
+        while (wt.currentRunPages[i].GetFirst(&temp))
         {
             currRec++;
         }
     }
 
     ASSERT_EQ(currRec, 0);
-    CleanUp(&wtd);
+    CleanUp(&wt);
     remove("nation.bin");
 }
 
