@@ -73,10 +73,10 @@ void SetupNewRun(WorkerThread *workerThread);
 
 void MergeRuns(WorkerThread *workerThread);
 
-void LoadMergeRunPriorityQueue(WorkerThread *workerThread,
+void PQLoadMergeRun(WorkerThread *workerThread,
                                priority_queue<PriorityQueueStruct, vector<PriorityQueueStruct>, RecordComparator> &pq);
 
-void LoadoPipeWithPriorityQueueData(WorkerThread *workerThread,
+void PQLoadOPipe(WorkerThread *workerThread,
                                          priority_queue<PriorityQueueStruct, vector<PriorityQueueStruct>, RecordComparator> &pq);
 
 void CleanUp(WorkerThread *workerThread);

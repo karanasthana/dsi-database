@@ -8,7 +8,7 @@
 #include <iostream>
 
 // Test to check worker thread initialization method
-TEST(BigQ, TestInitializeWorkerThreadMethod)
+TEST(BigQ, TestInitialization)
 {
     WorkerThread wt = {};
     InitWorkerThread(&wt);
@@ -23,7 +23,7 @@ TEST(BigQ, TestInitializeWorkerThreadMethod)
 }
 
 // Test to check cleaup method
-TEST(BigQ, TestCleanUpMethod)
+TEST(BigQ, TestCleanup)
 {
     WorkerThread wt = {};
     InitWorkerThread(&wt);
@@ -36,7 +36,7 @@ TEST(BigQ, TestCleanUpMethod)
 }
 
 // Test to check adding records to run method
-TEST(BigQ, TestAddRecordToCurrentRunMethod)
+TEST(BigQ, TestAddRecordsCurrRun)
 {
     WorkerThread wt = {
         .runLength = 1,
@@ -73,7 +73,7 @@ TEST(BigQ, TestAddRecordToCurrentRunMethod)
 }
 
 // Test to check load current run priority queue method
-TEST(BigQ, TestLoadCurrentRunPriorityQueueMethod)
+TEST(BigQ, TestPutInPQ)
 {
     WorkerThread wt = {
         .runLength = 1,
