@@ -30,8 +30,8 @@ struct PriorityQueueStruct {
     Page *page;
     Record *head;
 
-    int currentPageNumber;
-    int maxPageNumberOfCurrentRun;
+    int pqCurrPageNum;
+    int pqMaxCurrRunPageNum;
 };
 
 struct RecordComparator {
@@ -41,35 +41,35 @@ struct RecordComparator {
         this->sortOrder = sortorder;
     }
 
-    bool operator()(Record *lhs, Record *rhs) {
+    bool operator()(Record *left, Record *right) {
         ComparisonEngine cmp;
-        return cmp.Compare(lhs, rhs, this->sortOrder) > 0;
+        return cmp.Compare(left, right, this->sortOrder) > 0;
     }
 
-    bool operator()(const PriorityQueueStruct &lhs, const PriorityQueueStruct &rhs) {
+    bool operator()(const PriorityQueueStruct &left, const PriorityQueueStruct &right) {
         ComparisonEngine cmp;
-        return cmp.Compare(lhs.head, rhs.head, this->sortOrder) > 0;
+        return cmp.Compare(left.head, right.head, this->sortOrder) > 0;
     }
 };
 
 
-void *TPMMS(void *threadData);
+void *TPMMS(void *tData);
 
-void InitWorkerThread(WorkerThread *threadData);
+void InitWorkerThread(WorkerThread *tData);
 
-void RunGeneration(WorkerThread *threadData);
+void GenerateRun(WorkerThread *tData);
 
-int AddRecordToCurrentRun(WorkerThread *threadData, Record *nextRecord);
+int AddRecToCurrRun(WorkerThread *tData, Record *nextRecord);
 
 void CreateRun(WorkerThread *workerThread);
 
-void SortAndStoreCurrentRun(WorkerThread *workerThread);
+void CustomSortAndWrite(WorkerThread *workerThread);
 
-void LoadCurrentRunPriorityQueue(WorkerThread *workerThread,priority_queue<Record *, vector<Record *>, RecordComparator> &pq);
+void PutInPQ(WorkerThread *workerThread,priority_queue<Record *, vector<Record *>, RecordComparator> &pq);
 
-void WritePriorityQueueContentToBigQFile(WorkerThread *workerThread,priority_queue<Record *, vector<Record *>, RecordComparator> &pq);
+void WriteFromPQ(WorkerThread *workerThread,priority_queue<Record *, vector<Record *>, RecordComparator> &pq);
 
-void ClearCurrentRun(WorkerThread *workerThread);
+void SetupNewRun(WorkerThread *workerThread);
 
 void MergeRuns(WorkerThread *workerThread);
 

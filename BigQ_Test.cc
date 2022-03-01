@@ -56,7 +56,7 @@ TEST(BigQ, TestAddRecordToCurrentRunMethod)
     while (dbfile.GetNext(temp))
     {
         numRec++;
-        AddRecordToCurrentRun(&wt, &temp);
+        AddRecToCurrRun(&wt, &temp);
     }
 
     int currRec = 0;
@@ -93,11 +93,11 @@ TEST(BigQ, TestLoadCurrentRunPriorityQueueMethod)
     while (dbfile.GetNext(temp))
     {
         numRec++;
-        AddRecordToCurrentRun(&wt, &temp);
+        AddRecToCurrRun(&wt, &temp);
     }
 
     priority_queue<Record *, vector<Record *>, RecordComparator> pq(new OrderMaker());
-    LoadCurrentRunPriorityQueue(&wt, pq);
+    PutInPQ(&wt, pq);
 
     ASSERT_EQ(numRec, pq.size());
 
