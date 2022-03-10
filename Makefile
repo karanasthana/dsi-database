@@ -10,15 +10,18 @@ tag = -n
 test_out_tag = -lfl
 endif
 
-gtest: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o BigQ_GTest.o
-	$(CC) -o gtest Record.o BigQ_GTest.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o lex.yy.o $(test_out_tag) $(LD_FLAGS)
+gtest: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o GenericDBFile.o HeapDBFile.o SortedDBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o BigQ_GTest.o
+	$(CC) -o gtest Record.o BigQ_GTest.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o GenericDBFile.o HeapDBFile.o SortedDBFile.o y.tab.o lex.yy.o $(test_out_tag) $(LD_FLAGS)
 
-test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test.o
-	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o lex.yy.o test.o $(test_out_tag) -l pthread
+test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o GenericDBFile.o HeapDBFile.o SortedDBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test.o
+	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o GenericDBFile.o HeapDBFile.o SortedDBFile.o y.tab.o lex.yy.o test.o $(test_out_tag) -l pthread
 	
-test_a1.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test_a1.o
-	$(CC) -o test_a1.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o lex.yy.o test_a1.o $(test_out_tag) -l pthread
+test_a1.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o GenericDBFile.o HeapDBFile.o SortedDBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test_a1.o
+	$(CC) -o test_a1.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o GenericDBFile.o HeapDBFile.o SortedDBFile.o Pipe.o File.o DBFile.o y.tab.o lex.yy.o test_a1.o $(test_out_tag) -l pthread
 	
+test_a22.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o GenericDBFile.o HeapDBFile.o SortedDBFile.o PathConfig.o BigQ.o Pipe.o y.tab.o lex.yy.o test_a22.o
+	$(CC) -o test_a22.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o GenericDBFile.o HeapDBFile.o SortedDBFile.o PathConfig.o Pipe.o File.o DBFile.o y.tab.o lex.yy.o test_a22.o $(test_out_tag) -l pthread
+
 main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
 	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o $(test_out_tag)
 	
@@ -45,6 +48,18 @@ ComparisonEngine.o: ComparisonEngine.cc
 	
 DBFile.o: DBFile.cc
 	$(CC) -g -c DBFile.cc
+
+HeapDBFile.o: HeapDBFile.cc
+	$(CC) -g -c HeapDBFile.cc
+
+GenericDBFile.o: GenericDBFile.cc
+	$(CC) -g -c GenericDBFile.cc
+
+SortedDBFile.o: SortedDBFile.cc
+	$(CC) -g -c SortedDBFile.cc
+
+PathConfig.o: PathConfig.cc
+	$(CC) -g -c PathConfig.cc
 
 File.o: File.cc
 	$(CC) -g -c File.cc

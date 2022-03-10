@@ -244,7 +244,7 @@ void File :: AddPage (Page *addMe, off_t whichPage) {
 }
 
 
-void File :: Open (int fileLen, const char *fName) {
+int File :: Open (int fileLen, const char *fName) {
 
 	// figure out the flags for the system open call
         int mode;
@@ -263,7 +263,8 @@ void File :: Open (int fileLen, const char *fName) {
 	// see if there was an error
 	if (myFilDes < 0) {
 		cerr << "BAD!  Open did not work for " << fName << "\n";
-		exit (1);
+		return 0;
+		//exit (1);
 	}
 
 	// read in the buffer if needed
@@ -276,7 +277,7 @@ void File :: Open (int fileLen, const char *fName) {
 	} else {
 		curLength = 0;
 	}
-
+	return 1;
 }
 
 
