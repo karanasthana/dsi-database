@@ -44,6 +44,9 @@ public:
 
 	// returns the value of curSizeInBytes
 	int getCurrentPageSize();
+
+	// returns the number of records
+	int GetNumberOfRecs();
 };
 
 

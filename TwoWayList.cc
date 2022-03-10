@@ -262,7 +262,6 @@ TwoWayList <Type> ::  Current (int offset)
 template <class Type> void
 TwoWayList <Type> :: Remove (Type *Item)
 {
-
 	Node *temp = list->current->next;
 	list->current->next = temp->next;
 	temp->next->previous = list->current;

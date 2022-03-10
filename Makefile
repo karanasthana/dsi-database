@@ -10,20 +10,29 @@ tag = -n
 test_out_tag = -lfl
 endif
 
-gtest: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o DBFile_test.o
-	$(CC) -o gtest Record.o DBFile_test.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o $(test_out_tag) $(LD_FLAGS)
+gtest: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o BigQ_GTest.o
+	$(CC) -o gtest Record.o BigQ_GTest.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o lex.yy.o $(test_out_tag) $(LD_FLAGS)
 
-test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o
-	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o $(test_out_tag)
+test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test.o
+	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o lex.yy.o test.o $(test_out_tag) -l pthread
+	
+test_a1.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test_a1.o
+	$(CC) -o test_a1.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o lex.yy.o test_a1.o $(test_out_tag) -l pthread
 	
 main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
 	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o $(test_out_tag)
 	
-DBFile_test.o:
-	$(CC) -g -c DBFile_test.cc
+#DBFile_test.o:
+#	$(CC) -g -c DBFile_test.cc
+
+BigQ_GTest.o:
+	$(CC) -g -c BigQ_GTest.cc
 
 test.o: test.cc
 	$(CC) -g -c test.cc
+
+test_a1.o: test_a1.cc
+	$(CC) -g -c test_a1.cc
 
 main.o: main.cc
 	$(CC) -g -c main.cc
@@ -45,6 +54,12 @@ Record.o: Record.cc
 
 Schema.o: Schema.cc
 	$(CC) -g -c Schema.cc
+
+BigQ.o: BigQ.cc
+	$(CC) -g -c BigQ.cc
+
+Pipe.o: Pipe.cc
+	$(CC) -g -c Pipe.cc
 	
 y.tab.o: Parser.y
 	yacc -d Parser.y

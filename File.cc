@@ -160,6 +160,10 @@ int Page :: getCurrentPageSize () {
 	return this->curSizeInBytes;
 }
 
+int Page :: GetNumberOfRecs() {
+	return numRecs;
+}
+
 File :: File () {
 }
 
