@@ -54,11 +54,11 @@ int Heap::Close() {
 
     // Create meta file, and store the file-type into it.
     string metaFilePath(fileLocation);
-    metaFilePath.append(".meta");
+    metaFilePath.append(".metadata");
     ofstream metaFile;
     metaFile.open(metaFilePath.c_str());
     if (!metaFile.is_open()) {
-        cout << "ERROR : Unable to create meta file " << metaFilePath << endl;
+        cout << "ERROR - HEAP : Unable to create meta data file " << metaFilePath << endl;
         exit(1);
     }
     metaFile << FILE_TYPE_HEAP;

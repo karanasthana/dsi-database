@@ -205,12 +205,12 @@ int Sorted::Open(const char *filePath) {
 int Sorted::Close() {
     // Write off meta data.
     string metaFilePath(fileLocation);
-    metaFilePath.append(".meta");
+    metaFilePath.append(".metadata");
 
     ofstream metaFile;
     metaFile.open(metaFilePath.c_str());
     if (!metaFile.is_open()) {
-        cout << "ERROR : Unable to create meta file " << metaFilePath << '\n';
+        cout << "ERROR - SORTED : Unable to create meta data file " << metaFilePath << '\n';
         exit(1);
     }
 

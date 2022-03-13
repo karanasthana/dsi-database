@@ -41,7 +41,8 @@ int DBFile::Open(const char *filePath) {
     // Get file-type info from meta file.
     std::ifstream metaFile;
     string metaFilePath(filePath);
-    metaFilePath.append(".meta");
+    cout << metaFilePath << " is being opened" << '\n';
+    metaFilePath.append(".metadata");
 
     metaFile.open(metaFilePath.c_str());
 
@@ -63,14 +64,14 @@ int DBFile::Open(const char *filePath) {
             file = new Sorted(orderMaker, runLen);
         }
         else {
-            cout << "Invalid file type value \"" << readLine << "\" stored in meta file." << endl;
+            cout << "Invalid file type value \"" << readLine << "\" stored in metadata file." << endl;
             exit(1);
         }
 
         metaFile.close();
     }
     else {
-        cout << "ERROR : Unable to create meta file " << metaFilePath << endl;
+        cout << "ERROR - DBFILE : Unable to create metadata file " << metaFilePath << endl;
         return 0;
     }
 
