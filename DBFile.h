@@ -1,47 +1,37 @@
-#ifndef DBFILE_H
-#define DBFILE_H
+#ifndef SQLIKE_DBFILE_H
+#define SQLIKE_DBFILE_H
 
-#include "TwoWayList.h"
+#include "Comparison.h"
+#include "GenericDBFile.h"
 #include "Record.h"
 #include "Schema.h"
-#include "File.h"
-#include "Comparison.h"
-#include "ComparisonEngine.h"
 
-typedef enum {heap, sorted, tree} fType;
-
-// stub DBFile header..replace it with your own DBFile.h 
+// typedef enum {heap, sorted, tree} fileType;
 
 class DBFile {
-
 private:
-	File *f;
-	Page *read;
-	Page *write;
-	Record *rec;
-	
-	bool hasRecordsLeft;
-	bool hasFileEnded;
+    GenericDBFile *file;
 
-	off_t rIndex;
-	off_t wIndex;
-
-	ComparisonEngine *comp;
-	void WriteToFile();
 public:
-	DBFile ();
-	~DBFile ();
+    DBFile();
 
-	int Create (const char *fpath, fType file_type, void *startup);
-	int Open (const char *fpath);
-	int Close ();
+    ~DBFile();
 
-	void Load (Schema &myschema, const char *loadpath);
+    int Create(const char *filePath, fileType type, void *startUp);
 
-	void MoveFirst ();
-	void Add (Record &addme);
-	int GetNext (Record &fetchme);
-	int GetNext (Record &fetchme, CNF &cnf, Record &literal);
+    int Open(const char *filePath);
 
+    int Close();
+
+    void Load(Schema &schema, const char *loadPath);
+
+    void MoveFirst();
+
+    void Add(Record &addMe);
+
+    int GetNext (Record &fetchMe);
+
+    int GetNext (Record &fetchMe, CNF &cnf, Record &literal);
 };
-#endif
+
+#endif //SQLIKE_DBFILE_H

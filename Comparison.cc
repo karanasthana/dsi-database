@@ -1,3 +1,4 @@
+#include <cstring>
 #include <stdio.h>
 #include <iostream>
 #include <stdlib.h>
@@ -117,6 +118,46 @@ void OrderMaker :: Print () {
 	}
 }
 
+
+string OrderMaker::ToString() {
+    string res;
+    res += to_string(numAtts);
+    for (int i = 0; i < numAtts; i++) {
+        res += "," + to_string(whichAtts[i]) + ":" + to_string(whichTypes[i]);
+    }
+    return res;
+}
+
+void OrderMaker::FromString(string src) {
+    string data;
+
+    int index = 0;
+    for (; index < src.size(); index++) {
+        if (src[index] == ',') {
+            index++;
+            break;
+        } else {
+            data += src[index];
+        }
+    }
+
+    this->numAtts = stoi(data);
+
+    data = "";
+    int attrIndex = 0;
+    for (; index < src.size(); index++) {
+        if (src[index] == ':') {
+            whichAtts[attrIndex] = stoi(data);
+            data = "";
+        } else if (src[index] == ',') {
+            whichTypes[attrIndex++] = Type(stoi(data));
+            data = "";
+        } else {
+            data += src[index];
+        }
+    }
+    whichTypes[attrIndex] = Type(stoi(data));
+}
 
 
 int CNF :: GetSortOrders (OrderMaker &left, OrderMaker &right) {
