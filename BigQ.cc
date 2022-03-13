@@ -1,217 +1,190 @@
+#include <algorithm>
+#include <queue>
+
 #include "BigQ.h"
 
-BigQ::BigQ(Pipe &in, Pipe &out, OrderMaker &sortOrder, int runlen) {
-    // Initialize worker thread object with default values.
-    WorkerThread *wt = new WorkerThread();
-    wt->iPipe = &in;
-    wt->oPipe = &out;
-    wt->sortOrder = &sortOrder;
-    wt->runLength = runlen;
+Run::Run(File *tempFile, off_t start, off_t end) {
+    tempFilePtr = tempFile;
 
-    // Creating pthread with the worker thread.
-    pthread_create(&workerThread, NULL, TPMMS, (void *) wt);
+    currPageIndex = start;
+    endPageIndex = end;
+
+    bufferPage = new Page();
+    tempFilePtr->GetPage(bufferPage, currPageIndex++);
+
+    currentRec = new Record();
+    bufferPage->GetFirst(currentRec);
 }
 
-BigQ::~BigQ() {
-    //destructor
-}
-
-//Implementation of Two Pass Multiway Merge Sort Algorithm
-void *TPMMS(void *tData) {
-    WorkerThread *worker = (WorkerThread *) tData;
-    InitWorkerThread(worker);
-
-    // Generating sorted runs of runLength pages
-    GenerateRun(worker);
-
-    //Merging sorted runs
-    MergeRuns(worker);
-
-    //Cleaning the worker object
-    CleanUp(worker);
-
-    //Note: return nullptr else segmentation fault (IMP)
-    return nullptr;
-}
-
-//Initializing the worker thread with relevant data
-void InitWorkerThread(WorkerThread *tData) {
-    // Create buffer page array to store current runs' records
-    Page *currPages = new(std::nothrow) Page[tData->runLength];
-    if (currPages == NULL) {
-        cerr << "ERROR occured: Current Run Pages is null!!!\n";
-        exit(1);
-    }
-
-    tData->currPages = currPages;
-    tData->currPageNum = 0;
-    tData->numberOfRuns = 0;
-    tData->isOverflow = false;
-
-    // Create temporary file for storing runs.
-    sprintf(tData->bigQFileName, "%d.bin", pthread_self());
-    tData->bigQFile.Open(0, tData->bigQFileName);
-}
-
-void GenerateRun(WorkerThread *tData) {
-    Record *next = new Record();
-
-    while (tData->iPipe->Remove(next)) {
-        if (!AddRecToCurrRun(tData, next)) {
-            CustomSortAndWrite(tData);
-            SetupNewRun(tData);
-            AddRecToCurrRun(tData, next);
+int Run::Next(Record *current) {
+    current->Consume(currentRec);
+    if (!bufferPage->GetFirst(currentRec)) {
+        if (currPageIndex < endPageIndex) {
+            bufferPage->EmptyItOut();
+            tempFilePtr->GetPage(bufferPage, currPageIndex++);
+            bufferPage->GetFirst(currentRec);
         }
-    }
-    do {
-        CustomSortAndWrite(tData);
-        SetupNewRun(tData);
-    } while (tData->isOverflow);
-}
-
-int AddRecToCurrRun(WorkerThread *tData, Record *next) {
-    Page *runPage = &tData->currPages[tData->currPageNum];
-    if (!runPage->Append(next)) {
-        if (tData->currPageNum + 1 == tData->runLength) {
+        else {
             return 0;
-        } else {
-            runPage = &tData->currPages[++tData->currPageNum];
         }
-        runPage->Append(next);
     }
+
     return 1;
 }
 
-void CustomSortAndWrite(WorkerThread *worker) {
-    // Using priority queue for in memory sort.
-    priority_queue<Record *, vector<Record *>, RecordComparator> pq(worker->sortOrder);
-    PutInPQ(worker, pq);
-
-    // Get the records from the priority queue and add sorted pages of records in the BigQFile.
-    WriteFromPQ(worker, pq);
+Run::~Run() {
+    delete tempFilePtr;
+    delete bufferPage;
+    delete currentRec;
 }
 
-// Put all the current run's record to the priority queue.
-void PutInPQ(WorkerThread *worker,
-                                 priority_queue<Record *, vector<Record *>, RecordComparator> &pq) {
+// Worker thread.
+void *Worker(void *bigQ) {
+    auto *myBigQ = (BigQ*) bigQ;
+    myBigQ->ExecuteSortPhase();
+    myBigQ->ExecuteMergePhase();
+    return nullptr;
+}
 
-    int i=0;
-    int pageNum= worker->currPageNum;
-    while(i<=pageNum)
-    {
-        Page *currPage = &worker->currPages[i]; 
-        Record *temp = new Record();
-        while (currPage->GetFirst(temp)) {
-            pq.push(temp);
-            temp = new Record();
+BigQ::BigQ(Pipe &input, Pipe &output, OrderMaker &sortOrder, int runLength) {
+    this->input = &input;
+    this->output = &output;
+    this->sortOrder = &sortOrder;
+    this->runLength = runLength;
+
+    tempFile = new File();
+    tempFile->Open(0, tempFileName);
+
+    comparisonEngine = new ComparisonEngine();
+
+    pthread_t worker;
+    pthread_create(&worker, nullptr, Worker, (void *) this);
+}
+
+// Reads data from the input pipe and sort them into run-length pages.
+void BigQ::ExecuteSortPhase() {
+    int currentSize = 0, capacity = runLength * PAGE_SIZE;
+
+    Page tempPage;
+    off_t pageIndex = 0;
+
+    Record tempRec;
+    Record *copyRec;
+
+    vector<Record*> records;
+
+    // Run till the input pipe contains records.
+    while (input->Remove(&tempRec)) {
+        copyRec = new Record();
+        copyRec->Consume(&tempRec);
+
+        currentSize += copyRec->getRecordSize();
+
+        // If more records can be added.
+        if (currentSize <= capacity) {
+            records.push_back(copyRec);
         }
-        currPage->EmptyItOut();
-        i++;
-    }
-}
+        // If not.
+        else {
+            // Sort the current record list in ascending order.
+            sort(records.begin(), records.end(), [this](Record *left, Record *right) {
+                return comparisonEngine->Compare(left, right, sortOrder) < 0;
+            });
 
-void WriteFromPQ(WorkerThread *worker,
-                                         priority_queue<Record *, vector<Record *>, RecordComparator> &pq) {
-    worker->isOverflow = false;
-    Page *buff = new Page();
-    // Get next empty page offset of BigQFile.
-    off_t currPageIdxInFile =
-            worker->bigQFile.GetLength() - 2 < 0 ? 0 : worker->bigQFile.GetLength() - 1;
-    off_t maxPageNum = currPageIdxInFile + worker->runLength - 1;
-    int pageNumOfExtraRec = 0;
-
-    while (!pq.empty()) {
-        // Overflow condition
-        if (currPageIdxInFile > maxPageNum) {
-            if (!(&worker->currPages[pageNumOfExtraRec])->Append(pq.top())) {
-                pageNumOfExtraRec++;
-            } else {
-                pq.pop();
+            // Write records to file using pages.
+            for (auto & rec : records) {
+                if (!tempPage.Append(rec)) {
+                    tempFile->AddPage(&tempPage, pageIndex++);
+                    tempPage.EmptyItOut();
+                    tempPage.Append(rec);
+                }
             }
-        }
-            // If the current buffer is full.
-        else if (!buff->Append(pq.top())) {
-            worker->bigQFile.AddPage(buff, currPageIdxInFile++);
-            buff->EmptyItOut();
-        } else {
-            pq.pop();
-        }
-    }
 
-    // If data is not over flow, store the last page in the BigQFile.
-    if (currPageIdxInFile <= maxPageNum) {
-        worker->bigQFile.AddPage(buff, currPageIdxInFile);
-    } else {
-        worker->isOverflow = true;
-    }
-}
-
-void SetupNewRun(WorkerThread *worker) {
-    worker->numberOfRuns++;
-    worker->currPageNum = 0;
-}
-
-void MergeRuns(struct WorkerThread *worker) {
-    priority_queue<PriorityQueueStruct, vector<PriorityQueueStruct>, RecordComparator> pq(worker->sortOrder);
-
-    PQLoadMergeRun(worker, pq);
-
-    PQLoadOPipe(worker, pq);
-}
-
-void PQLoadMergeRun(WorkerThread *worker,
-                               priority_queue<PriorityQueueStruct,
-                                       vector<PriorityQueueStruct>,
-                                       RecordComparator> &pq) {
-    PriorityQueueStruct *pQStruct = new PriorityQueueStruct[worker->numberOfRuns];
-    int i=0;
-    int numRuns= worker->numberOfRuns;
-    while(i<numRuns)
-    {
-        pQStruct[i].pqCurrPageNum = i * worker->runLength;
-        pQStruct[i].pqMaxCurrRunPageNum =
-                std::min((off_t) pQStruct[i].pqCurrPageNum + worker->runLength - 1,
-                         worker->bigQFile.GetLength() - 2);
-
-        pQStruct[i].page = new Page();
-        worker->bigQFile.GetPage(pQStruct[i].page, pQStruct[i].pqCurrPageNum);
-        pQStruct[i].head = new Record();
-        pQStruct[i].page->GetFirst(pQStruct[i].head);
-        pq.push(pQStruct[i]);
-        i++;
-    }
-}
-
-void PQLoadOPipe(WorkerThread *worker,
-                                         priority_queue<PriorityQueueStruct,
-                                                 vector<PriorityQueueStruct>, RecordComparator> &pq) {
-    while (!pq.empty()) {
-        PriorityQueueStruct temp = pq.top();
-        pq.pop();
-        worker->oPipe->Insert(temp.head);
-        if (!temp.page->GetFirst(temp.head)) {
-            if (temp.pqCurrPageNum + 1 <= temp.pqMaxCurrRunPageNum) {
-                temp.pqCurrPageNum++;
-                worker->bigQFile.GetPage(temp.page, temp.pqCurrPageNum);
-                temp.page->GetFirst(temp.head);
-                pq.push(temp);
+            // Write off the last page records.
+            if (tempPage.GetNumberOfRecs() > 0) {
+                tempFile->AddPage(&tempPage, pageIndex++);
+                tempPage.EmptyItOut();
             }
-        } else {
-            pq.push(temp);
+
+            // Write off sentinel.
+            runIndexes.push_back(pageIndex);
+
+            // Clear records list and update current-size
+            for (auto & rec : records) delete rec;
+            records.clear();
+            records.push_back(copyRec);
+            currentSize = sizeof(int) + copyRec->getRecordSize();
         }
     }
+
+    // Write off the last bunch of records which never exceeded capacity.
+    // Sort the current record list in ascending order.
+    sort(records.begin(), records.end(), [this](Record *left, Record *right) {
+        return comparisonEngine->Compare(left, right, sortOrder) < 0;
+    });
+
+    // Write records to file using pages.
+    for (auto & rec : records) {
+        if (!tempPage.Append(rec)) {
+            tempFile->AddPage(&tempPage, pageIndex++);
+            tempPage.EmptyItOut();
+            tempPage.Append(rec);
+        }
+    }
+
+    // Write off the last page records.
+    if (tempPage.GetNumberOfRecs() > 0) {
+        tempFile->AddPage(&tempPage, pageIndex++);
+        tempPage.EmptyItOut();
+    }
+
+    // Write off sentinel.
+    runIndexes.push_back(pageIndex);
+
+    // Free memory.
+    for (auto & rec : records) delete rec;
+    records.clear();
 }
 
-void CleanUp(WorkerThread *worker) {
-    // Close and delete the file.
+// Construct priority queue over sorted runs and dump sorted data into the out pipe.
+void BigQ::ExecuteMergePhase() {
+    // Custom comparator that defines the order for our priority queue.
+    auto comparator = [this](Run *left, Run *right) {
+        return comparisonEngine->Compare(left->currentRec, right->currentRec, sortOrder) >=0;
+    };
 
-    worker->bigQFile.Close();
-    remove(worker->bigQFileName);
+    priority_queue<Run*, vector<Run*>, decltype(comparator)> PQ(comparator);
 
-    delete[] worker->currPages;
-
-    // Shut down output pipe.
-    if (worker->oPipe) {
-        worker->oPipe->ShutDown();
+    off_t prev = 0;
+    for (auto & index : runIndexes) {
+        PQ.push(new Run(tempFile, prev, index));
+        prev = index;
     }
+
+    Record tempRec;
+    Run *tempRun;
+    while (!PQ.empty()) {
+        tempRun = PQ.top();
+        PQ.pop();
+
+        // Next returns 1 when there are more records left to be sorted from this run, and 0 otherwise.
+        if (tempRun->Next(&tempRec)) {
+            // Push the Run into priority queue again if Next returns 1.
+            PQ.push(tempRun);
+        }
+
+        // Insert into output pipe.
+        output->Insert(&tempRec);
+    }
+    delete tempRun;
+
+    output->ShutDown();
+
+    tempFile->Close();
+    remove(tempFileName);
+}
+
+BigQ::~BigQ() {
+    delete tempFile;
+    delete comparisonEngine;
 }
