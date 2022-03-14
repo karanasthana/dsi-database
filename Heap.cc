@@ -20,14 +20,14 @@ Heap::Heap() {
 
     rIndex = wIndex = 0;
 
-    comparisonEngine = new ComparisonEngine();
+    comp = new ComparisonEngine();
 }
 
 Heap::~Heap() {
     delete file;
     delete read;
     delete write;
-    delete comparisonEngine;
+    delete comp;
 }
 
 int Heap::Create(const char *filePath, typeOfFile type, void *startUp) {
@@ -144,7 +144,7 @@ int Heap::GetNext(Record &fetchMe, CNF &cnf, Record &literal) {
         int hasRecord = GetNext(fetchMe);
         if (!hasRecord) return 0;
 
-        if (comparisonEngine->Compare(&fetchMe, &literal, &cnf)) {
+        if (comp->Compare(&fetchMe, &literal, &cnf)) {
             return 1;
         }
     }

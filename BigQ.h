@@ -40,7 +40,7 @@ private:
     File *tempFile;
     const char *tempFileName = "temp.bin";
 
-    ComparisonEngine *comparisonEngine;
+    ComparisonEngine *comp;
 
     std::vector<off_t> runIndexes;
 

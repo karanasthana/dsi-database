@@ -22,7 +22,7 @@ private:
     Page *bufferedPage;
     off_t currentPagePtr;
 
-    ComparisonEngine *comparisonEngine;
+    ComparisonEngine *comp;
 
     OrderMaker *sortOrder;
     int runLength;

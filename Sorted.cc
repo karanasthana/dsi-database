@@ -54,7 +54,7 @@ void Sorted::Merge() {
 
     while (fileHasRecord && pipeHasRecord) {
         // If fileRecord < pipeRecord
-        if (comparisonEngine->Compare(fileRecord, pipeRecord, sortOrder) < 0) {
+        if (comp->Compare(fileRecord, pipeRecord, sortOrder) < 0) {
             mergedFile->Add(*fileRecord);
             fileHasRecord = GetNext(*fileRecord);
         }
@@ -161,14 +161,14 @@ void Sorted::Init() {
 
     currentPagePtr = 0;
 
-    comparisonEngine = new ComparisonEngine();
+    comp = new ComparisonEngine();
 
     queryOrder = cnfOrder = nullptr;
 }
 
 Sorted::~Sorted() {
     delete file;
-    delete comparisonEngine;
+    delete comp;
     delete queryOrder;
 }
 
@@ -320,8 +320,8 @@ int Sorted::GetNextBinarySearch(Record &fetchMe, CNF &cnf, Record &literal, bool
     }
 
     while (GetNext(fetchMe)) {
-        if (comparisonEngine->Compare(&fetchMe, queryOrder, &literal, cnfOrder) == 0
-            && comparisonEngine->Compare(&fetchMe, &literal, &cnf)) {
+        if (comp->Compare(&fetchMe, queryOrder, &literal, cnfOrder) == 0
+            && comp->Compare(&fetchMe, &literal, &cnf)) {
             return 1;
         }
     }
@@ -342,7 +342,7 @@ off_t Sorted::BinarySearch(off_t low, off_t high, Record &literal) {
     Record tempRec;
     tempPage.GetFirst(&tempRec);
 
-    if (comparisonEngine->Compare(&tempRec, queryOrder, &literal, cnfOrder) < 0) {
+    if (comp->Compare(&tempRec, queryOrder, &literal, cnfOrder) < 0) {
         return BinarySearch(mid + 1, high, literal);
     }
 
@@ -361,7 +361,7 @@ int Sorted::GetNextLinearSearch(Record &fetchMe, CNF &cnf, Record &literal) {
         int hasRecord = GetNext(fetchMe);
         if (!hasRecord) return 0;
 
-        if (comparisonEngine->Compare(&fetchMe, &literal, &cnf)) {
+        if (comp->Compare(&fetchMe, &literal, &cnf)) {
             return 1;
         }
     }

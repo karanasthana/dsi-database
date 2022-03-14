@@ -55,7 +55,7 @@ BigQ::BigQ(Pipe &input, Pipe &output, OrderMaker &sortOrder, int runLength) {
     tempFile = new File();
     tempFile->Open(0, tempFileName);
 
-    comparisonEngine = new ComparisonEngine();
+    comp = new ComparisonEngine();
 
     pthread_t worker;
     pthread_create(&worker, nullptr, Worker, (void *) this);
@@ -88,7 +88,7 @@ void BigQ::ExecuteSortPhase() {
         else {
             // Sort the current record list in ascending order.
             sort(records.begin(), records.end(), [this](Record *left, Record *right) {
-                return comparisonEngine->Compare(left, right, sortOrder) < 0;
+                return comp->Compare(left, right, sortOrder) < 0;
             });
 
             // Write records to file using pages.
@@ -120,7 +120,7 @@ void BigQ::ExecuteSortPhase() {
     // Write off the last bunch of records which never exceeded capacity.
     // Sort the current record list in ascending order.
     sort(records.begin(), records.end(), [this](Record *left, Record *right) {
-        return comparisonEngine->Compare(left, right, sortOrder) < 0;
+        return comp->Compare(left, right, sortOrder) < 0;
     });
 
     // Write records to file using pages.
@@ -150,7 +150,7 @@ void BigQ::ExecuteSortPhase() {
 void BigQ::ExecuteMergePhase() {
     // Custom comparator that defines the order for our priority queue.
     auto comparator = [this](Run *left, Run *right) {
-        return comparisonEngine->Compare(left->currentRec, right->currentRec, sortOrder) >=0;
+        return comp->Compare(left->currentRec, right->currentRec, sortOrder) >=0;
     };
 
     priority_queue<Run*, vector<Run*>, decltype(comparator)> PQ(comparator);
@@ -186,5 +186,5 @@ void BigQ::ExecuteMergePhase() {
 
 BigQ::~BigQ() {
     delete tempFile;
-    delete comparisonEngine;
+    delete comp;
 }

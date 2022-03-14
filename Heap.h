@@ -16,7 +16,7 @@ private:
     // Pointer to the current read and write pages.
     off_t rIndex, wIndex;
 
-    ComparisonEngine *comparisonEngine;
+    ComparisonEngine *comp;
 
     void WriteToFile();
 
