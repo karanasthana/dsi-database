@@ -18,7 +18,7 @@ DBFile::~DBFile() {
     delete file;
 }
 
-int DBFile::Create(const char *filePath, fileType type, void *startUp) {
+int DBFile::Create(const char *filePath, typeOfFile type, void *startUp) {
     if (filePath == nullptr || type < heap || type > tree) return 0;
 
     if (type == heap) {
@@ -41,7 +41,7 @@ int DBFile::Open(const char *filePath) {
     // Get file-type info from meta file.
     std::ifstream metaFile;
     string metaFilePath(filePath);
-    // cout << metaFilePath << " is being opened" << '\n';
+     //cout << metaFilePath << " is being opened" << '\n';
     metaFilePath.append(".metadata");
 
     metaFile.open(metaFilePath.c_str());

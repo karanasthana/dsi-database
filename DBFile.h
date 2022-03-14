@@ -1,12 +1,10 @@
-#ifndef SQLIKE_DBFILE_H
-#define SQLIKE_DBFILE_H
+#ifndef DBFILE_H
+#define DBFILE_H
 
 #include "Comparison.h"
 #include "GenericDBFile.h"
 #include "Record.h"
 #include "Schema.h"
-
-// typedef enum {heap, sorted, tree} fileType;
 
 class DBFile {
 private:
@@ -17,7 +15,7 @@ public:
 
     ~DBFile();
 
-    int Create(const char *filePath, fileType type, void *startUp);
+    int Create(const char *filePath, typeOfFile type, void *startUp);
 
     int Open(const char *filePath);
 
@@ -34,4 +32,4 @@ public:
     int GetNext (Record &fetchMe, CNF &cnf, Record &literal);
 };
 
-#endif //SQLIKE_DBFILE_H
+#endif //DBFILE_H

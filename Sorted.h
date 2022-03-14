@@ -1,5 +1,5 @@
-#ifndef SQLIKE_SORTED_H
-#define SQLIKE_SORTED_H
+#ifndef SORTED_H
+#define SORTED_H
 
 #include "BigQ.h"
 #include "GenericDBFile.h"
@@ -52,7 +52,7 @@ public:
 
     ~Sorted() override;
 
-    int Create(const char *filePath, fileType type, void *startUp) override;
+    int Create(const char *filePath, typeOfFile type, void *startUp) override;
 
     int Open(const char *filePath) override;
 
@@ -69,4 +69,4 @@ public:
     int GetNext(Record &fetchMe, CNF &cnf, Record &literal) override;
 };
 
-#endif //SQLIKE_SORTED_H
+#endif //SORTED_H

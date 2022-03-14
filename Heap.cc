@@ -8,31 +8,31 @@
 using namespace std;
 
 void Heap::WriteToFile() {
-    file->AddPage(writePage, writePtr++);
-    writePage->EmptyItOut();
+    file->AddPage(write, wIndex++);
+    write->EmptyItOut();
 }
 
 Heap::Heap() {
     file = new File();
 
-    readPage = new Page();
-    writePage = new Page();
+    read = new Page();
+    write = new Page();
 
-    readPtr = writePtr = 0;
+    rIndex = wIndex = 0;
 
     comparisonEngine = new ComparisonEngine();
 }
 
 Heap::~Heap() {
     delete file;
-    delete readPage;
-    delete writePage;
+    delete read;
+    delete write;
     delete comparisonEngine;
 }
 
-int Heap::Create(const char *filePath, fileType type, void *startUp) {
+int Heap::Create(const char *filePath, typeOfFile type, void *startUp) {
     // Reset read and write pointers.
-    readPtr = writePtr = 0;
+    rIndex = wIndex = 0;
 
     this->fileLocation = string(filePath);
 
@@ -50,7 +50,7 @@ int Heap::Open(const char *filePath) {
 
 int Heap::Close() {
     // Write off the last page.
-    if (writePage->GetNumberOfRecs() > 0) WriteToFile();
+    if (write->GetNumberOfRecs() > 0) WriteToFile();
 
     // Create meta file, and store the file-type into it.
     string metaFilePath(fileLocation);
@@ -69,7 +69,7 @@ int Heap::Close() {
 
 void Heap::CloseFile() {
     // Write off the last page.
-    if (writePage->GetNumberOfRecs() > 0) WriteToFile();
+    if (write->GetNumberOfRecs() > 0) WriteToFile();
 
     file->Close();
 }
@@ -96,8 +96,8 @@ void Heap::Load(Schema &schema, const char *loadPath) {
 }
 
 void Heap::MoveFirst() {
-    readPtr = 0;
-    file->GetPage(readPage, readPtr++);
+    rIndex = 0;
+    file->GetPage(read, rIndex++);
 }
 
 void Heap::Add(Record &addMe) {
@@ -105,26 +105,26 @@ void Heap::Add(Record &addMe) {
      * Check if there's enough space left on this page.
      * If not, write this page to the file, empty the page and add this record to it, Else just add the record.
      */
-    if (!writePage->Append(&addMe)) {
+    if (!write->Append(&addMe)) {
         WriteToFile();
-        writePage->Append(&addMe);
+        write->Append(&addMe);
     }
 }
 
 // Gets the next record from the file.
 int Heap::GetNext(Record &fetchMe) {
     /*
-     * Check if there are any records left to be read on the current readPage, and just update the
-     * fetchMe with the value of next record from this readPage.
-     * If not, update readPage to point to the next page in the file, and then update the value
-     * of fetchMe for this new readPage.
+     * Check if there are any records left to be read on the current read, and just update the
+     * fetchMe with the value of next record from this read.
+     * If not, update read to point to the next page in the file, and then update the value
+     * of fetchMe for this new read.
      *
      * Return 0 if reached the end of the file, else return 1.
      */
-    if (!readPage->GetFirst(&fetchMe)) {
-        if (readPtr < file->GetLength() - 1) {
-            file->GetPage(readPage, readPtr++);
-            readPage->GetFirst(&fetchMe);
+    if (!read->GetFirst(&fetchMe)) {
+        if (rIndex < file->GetLength() - 1) {
+            file->GetPage(read, rIndex++);
+            read->GetFirst(&fetchMe);
         }
         else
             return 0;

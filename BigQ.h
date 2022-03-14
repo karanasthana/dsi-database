@@ -1,5 +1,5 @@
-#ifndef SQLIKE_BIGQ_H
-#define SQLIKE_BIGQ_H
+#ifndef BIGQ_H
+#define BIGQ_H
 
 #include "Comparison.h"
 #include "ComparisonEngine.h"
@@ -53,4 +53,4 @@ public:
     void ExecuteMergePhase();
 };
 
-#endif //SQLIKE_BIGQ_H
+#endif //BIGQ_H

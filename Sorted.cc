@@ -172,7 +172,7 @@ Sorted::~Sorted() {
     delete queryOrder;
 }
 
-int Sorted::Create(const char *filePath, fileType type, void *startUp) {
+int Sorted::Create(const char *filePath, typeOfFile type, void *startUp) {
     fileLocation = string(filePath);
 
     size_t index = fileLocation.find_last_of("/\\");
@@ -267,10 +267,10 @@ int Sorted::GetNext(Record &fetchMe) {
     Read();
 
     /*
-     * Check if there are any records left to be read on the current readPage, and just update the
-     * fetchMe with the value of next record from this readPage.
-     * If not, update readPage to point to the next page in the file, and then update the value
-     * of fetchMe for this new readPage.
+     * Check if there are any records left to be read on the current read, and just update the
+     * fetchMe with the value of next record from this read.
+     * If not, update read to point to the next page in the file, and then update the value
+     * of fetchMe for this new read.
      *
      * Return 0 if reached the end of the file, else return 1.
      */

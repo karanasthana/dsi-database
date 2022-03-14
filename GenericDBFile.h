@@ -1,11 +1,11 @@
-#ifndef SQLIKE_GENERICDBFILE_H
-#define SQLIKE_GENERICDBFILE_H
+#ifndef GENERICDBFILE_H
+#define GENERICDBFILE_H
 
 typedef enum {
     heap,
     sorted,
     tree
-} fileType;
+} typeOfFile;
 
 // Generic database type interface.
 class GenericDBFile {
@@ -14,7 +14,7 @@ public:
 
     virtual ~GenericDBFile() = default;
 
-    virtual int Create(const char *filePath, fileType type, void *startUp) = 0;
+    virtual int Create(const char *filePath, typeOfFile type, void *startUp) = 0;
 
     virtual int Open(const char *filePath) = 0;
 
@@ -31,4 +31,4 @@ public:
     virtual int GetNext (Record &fetchMe, CNF &cnf, Record &literal) = 0;
 };
 
-#endif //SQLIKE_GENERICDBFILE_H
+#endif //GENERICDBFILE_H

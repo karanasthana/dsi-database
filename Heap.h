@@ -1,5 +1,5 @@
-#ifndef SQLIKE_HEAP_H
-#define SQLIKE_HEAP_H
+#ifndef HEAP_H
+#define HEAP_H
 
 #include "Comparison.h"
 #include "ComparisonEngine.h"
@@ -11,10 +11,10 @@ private:
     File *file;
     string fileLocation;
 
-    Page *readPage, *writePage;
+    Page *read, *write;
 
     // Pointer to the current read and write pages.
-    off_t readPtr, writePtr;
+    off_t rIndex, wIndex;
 
     ComparisonEngine *comparisonEngine;
 
@@ -25,7 +25,7 @@ public:
 
     ~Heap() override;
 
-    int Create(const char *filePath, fileType type, void *startUp) override;
+    int Create(const char *filePath, typeOfFile type, void *startUp) override;
 
     int Open(const char *filePath) override;
 
@@ -44,4 +44,4 @@ public:
     int GetNext(Record &fetchMe, CNF &cnf, Record &literal) override;
 };
 
-#endif //SQLIKE_HEAP_H
+#endif //HEAP_H
