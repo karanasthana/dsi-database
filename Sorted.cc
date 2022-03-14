@@ -245,7 +245,7 @@ void Sorted::Load(Schema &schema, const char *loadPath) {
         exit(1);
     }
 
-    cout << "Loaded " << count << " records from " << loadPath << '\n';
+    // cout << "Loaded " << count << " records from " << loadPath << '\n';
 }
 
 void Sorted::MoveFirst() {

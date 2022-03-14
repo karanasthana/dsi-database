@@ -41,7 +41,7 @@ int DBFile::Open(const char *filePath) {
     // Get file-type info from meta file.
     std::ifstream metaFile;
     string metaFilePath(filePath);
-    cout << metaFilePath << " is being opened" << '\n';
+    // cout << metaFilePath << " is being opened" << '\n';
     metaFilePath.append(".metadata");
 
     metaFile.open(metaFilePath.c_str());
