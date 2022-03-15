@@ -6,7 +6,8 @@
 #include "Record.h"
 #include "Schema.h"
 
-class DBFile {
+class DBFile
+{
 private:
     GenericDBFile *file;
 
@@ -27,9 +28,9 @@ public:
 
     void Add(Record &addMe);
 
-    int GetNext (Record &fetchMe);
+    int GetNext(Record &fetchMe);
 
-    int GetNext (Record &fetchMe, CNF &cnf, Record &literal);
+    int GetNext(Record &fetchMe, CNF &cnf, Record &literal);
 };
 
-#endif //DBFILE_H
+#endif // DBFILE_H

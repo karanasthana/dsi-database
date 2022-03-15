@@ -5,31 +5,31 @@
 #include "GenericDBFile.h"
 #include "File.h"
 
-class Sorted : public GenericDBFile {
+class Sorted : public GenericDBFile
+{
 private:
-    enum Mode {
+    enum Mode
+    {
         READ,
         WRITE
     } mode;
 
     File *file;
-    string fileLocation, tempMergeFileLocation;
+    string filePath, tempFileLoc;
 
     BigQ *bigQ;
 
-    Pipe *inputPipe, *outputPipe;
+    Pipe *iPipe, *oPipe;
 
     Page *bufferedPage;
-    off_t currentPagePtr;
+    off_t currPagePtr;
 
     ComparisonEngine *comp;
 
     OrderMaker *sortOrder;
     int runLength;
 
-    // To be used in GetNext with CNF.
-    OrderMaker *queryOrder;
-    OrderMaker *cnfOrder;
+    OrderMaker *queryOrder, *cnfOrder;
 
     void Init();
 
@@ -38,13 +38,13 @@ private:
 
     void Merge();
 
-    void BuildQueryOrder(CNF &cnf);
+    void buildQuery(CNF &cnf);
 
-    off_t BinarySearch(off_t low, off_t high, Record &literal);
+    off_t performBinarySearch(off_t low, off_t high, Record &literal);
 
-    int GetNextBinarySearch(Record &fetchMe, CNF &cnf, Record &literal, bool isCnfUpdated);
+    int binarySearchNext(Record &fetchMe, CNF &cnf, Record &literal, bool isCnfUpdated);
 
-    int GetNextLinearSearch(Record &fetchMe, CNF &cnf, Record &literal);
+    int linearSearchNext(Record &fetchMe, CNF &cnf, Record &literal);
 
 public:
     Sorted();
@@ -52,9 +52,9 @@ public:
 
     ~Sorted() override;
 
-    int Create(const char *filePath, typeOfFile type, void *startUp) override;
+    int Create(const char *fp, typeOfFile type, void *startUp) override;
 
-    int Open(const char *filePath) override;
+    int Open(const char *fp) override;
 
     int Close() override;
 
@@ -69,4 +69,4 @@ public:
     int GetNext(Record &fetchMe, CNF &cnf, Record &literal) override;
 };
 
-#endif //SORTED_H
+#endif // SORTED_H

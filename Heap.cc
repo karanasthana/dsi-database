@@ -7,12 +7,14 @@
 
 using namespace std;
 
-void Heap::WriteToFile() {
+void Heap::WriteToFile()
+{
     file->AddPage(write, wIndex++);
     write->EmptyItOut();
 }
 
-Heap::Heap() {
+Heap::Heap()
+{
     file = new File();
 
     read = new Page();
@@ -23,106 +25,106 @@ Heap::Heap() {
     comp = new ComparisonEngine();
 }
 
-Heap::~Heap() {
+Heap::~Heap()
+{
     delete file;
     delete read;
     delete write;
     delete comp;
 }
 
-int Heap::Create(const char *filePath, typeOfFile type, void *startUp) {
-    // Reset read and write pointers.
+int Heap::Create(const char *fp, typeOfFile type, void *startUp)
+{
     rIndex = wIndex = 0;
 
-    this->fileLocation = string(filePath);
+    this->filePath = string(fp);
 
-    // Create bin file.
-    file->Open(0, filePath);
+    file->Open(0, fp);
 
     return 1;
 }
 
-int Heap::Open(const char *filePath) {
-    // Opens bin file.
-    file->Open(1, filePath);
+int Heap::Open(const char *fp)
+{
+    file->Open(1, fp);
     return 1;
 }
 
-int Heap::Close() {
-    // Write off the last page.
-    if (write->GetNumberOfRecs() > 0) WriteToFile();
+int Heap::Close()
+{
+    if (write->GetNumberOfRecs() > 0)
+        WriteToFile();
 
-    // Create meta file, and store the file-type into it.
-    string metaFilePath(fileLocation);
-    metaFilePath.append(".metadata");
-    ofstream metaFile;
-    metaFile.open(metaFilePath.c_str());
-    if (!metaFile.is_open()) {
-        cout << "ERROR - HEAP : Unable to create meta data file " << metaFilePath << endl;
+    string metadataFilePath(filePath);
+    metadataFilePath.append(".metadata");
+    ofstream metadataFile;
+    metadataFile.open(metadataFilePath.c_str());
+    if (!metadataFile.is_open())
+    {
+        cout << "Not able to create meta data file " << metadataFilePath << endl;
         exit(1);
     }
-    metaFile << FILE_TYPE_HEAP;
-    metaFile.close();
+    metadataFile << FILE_TYPE_HEAP;
+    metadataFile.close();
 
     return file->Close();
 }
 
-void Heap::CloseFile() {
-    // Write off the last page.
-    if (write->GetNumberOfRecs() > 0) WriteToFile();
+void Heap::CloseFile()
+{
+    if (write->GetNumberOfRecs() > 0)
+        WriteToFile();
 
     file->Close();
 }
 
-void Heap::Load(Schema &schema, const char *loadPath) {
+void Heap::Load(Schema &schema, const char *loadPath)
+{
     int count = 0;
 
     FILE *tblFile = fopen(loadPath, "r");
-    if (tblFile != nullptr) {
-        // Read all the records from the tbl file and add it to our page object one by one.
+    if (tblFile != nullptr)
+    {
         Record next;
-        while (next.SuckNextRecord(&schema, tblFile)) {
+        while (next.SuckNextRecord(&schema, tblFile))
+        {
             Add(next);
             count++;
         }
         fclose(tblFile);
     }
-    else {
-        cout << "Unable to open file " << tblFile << endl;
+    else
+    {
+        cout << "Not able to open file " << tblFile << endl;
         exit(1);
     }
 
     cout << "Loaded " << count << " records from " << loadPath << endl;
 }
 
-void Heap::MoveFirst() {
+void Heap::MoveFirst()
+{
     rIndex = 0;
     file->GetPage(read, rIndex++);
 }
 
-void Heap::Add(Record &addMe) {
-    /*
-     * Check if there's enough space left on this page.
-     * If not, write this page to the file, empty the page and add this record to it, Else just add the record.
-     */
-    if (!write->Append(&addMe)) {
+void Heap::Add(Record &addMe)
+{
+
+    if (!write->Append(&addMe))
+    {
         WriteToFile();
         write->Append(&addMe);
     }
 }
 
-// Gets the next record from the file.
-int Heap::GetNext(Record &fetchMe) {
-    /*
-     * Check if there are any records left to be read on the current read, and just update the
-     * fetchMe with the value of next record from this read.
-     * If not, update read to point to the next page in the file, and then update the value
-     * of fetchMe for this new read.
-     *
-     * Return 0 if reached the end of the file, else return 1.
-     */
-    if (!read->GetFirst(&fetchMe)) {
-        if (rIndex < file->GetLength() - 1) {
+int Heap::GetNext(Record &fetchMe)
+{
+
+    if (!read->GetFirst(&fetchMe))
+    {
+        if (rIndex < file->GetLength() - 1)
+        {
             file->GetPage(read, rIndex++);
             read->GetFirst(&fetchMe);
         }
@@ -132,19 +134,17 @@ int Heap::GetNext(Record &fetchMe) {
     return 1;
 }
 
-int Heap::GetNext(Record &fetchMe, CNF &cnf, Record &literal) {
-    /*
-     * Infinitely look for the next record satisfying the given CNF until we find one.
-     * In each iteration of the while loop there are 3 possibilities.
-     * 1. Reached to the end of the file - return 0.
-     * 2. Found the record matching CNF - return 1.
-     * 3. Record does not satisfy the CNF - move to next record.
-     */
-    while (true) {
-        int hasRecord = GetNext(fetchMe);
-        if (!hasRecord) return 0;
+int Heap::GetNext(Record &fetchMe, CNF &cnf, Record &literal)
+{
 
-        if (comp->Compare(&fetchMe, &literal, &cnf)) {
+    while (true)
+    {
+        int hasRecord = GetNext(fetchMe);
+        if (!hasRecord)
+            return 0;
+
+        if (comp->Compare(&fetchMe, &literal, &cnf))
+        {
             return 1;
         }
     }

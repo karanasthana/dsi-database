@@ -6,14 +6,14 @@
 #include "File.h"
 #include "GenericDBFile.h"
 
-class Heap : public GenericDBFile {
+class Heap : public GenericDBFile
+{
 private:
     File *file;
-    string fileLocation;
+    string filePath;
 
     Page *read, *write;
 
-    // Pointer to the current read and write pages.
     off_t rIndex, wIndex;
 
     ComparisonEngine *comp;
@@ -25,9 +25,9 @@ public:
 
     ~Heap() override;
 
-    int Create(const char *filePath, typeOfFile type, void *startUp) override;
+    int Create(const char *fp, typeOfFile type, void *startUp) override;
 
-    int Open(const char *filePath) override;
+    int Open(const char *fp) override;
 
     int Close() override;
 
@@ -44,4 +44,4 @@ public:
     int GetNext(Record &fetchMe, CNF &cnf, Record &literal) override;
 };
 
-#endif //HEAP_H
+#endif // HEAP_H
