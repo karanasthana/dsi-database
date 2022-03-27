@@ -29,6 +29,7 @@ class Schema {
 
 public:
 
+    Schema(const char *fName, int numAttrs, Attribute *attrs);
 	// gets the set of attributes, but be careful with this, since it leads
 	// to aliasing!!!
 	Attribute *GetAtts ();

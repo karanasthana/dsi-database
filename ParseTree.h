@@ -1,3 +1,5 @@
+#ifndef PARSETREE_H
+#define PARSETREE_H
 
 // these are the different types of operators that can appear
 // in a CNF expression
@@ -51,6 +53,6 @@ struct AndList {
 	struct AndList *rightAnd;
 
 };
-
-
+	
+#endif 
 

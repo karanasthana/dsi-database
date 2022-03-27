@@ -9,7 +9,7 @@
 #include "DBFile.h"
 #include "Schema.h"
 #include "BigQ.h"
-#include "test.h"
+#include "test_a22.h"
 
 void GetMataDataFilePath(const char *fpath, char *metadataPath) {
     strcpy(metadataPath, fpath);

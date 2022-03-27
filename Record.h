@@ -8,7 +8,6 @@
 
 #include "Defs.h"
 #include "ParseTree.h"
-#include "Record.h"
 #include "Schema.h"
 #include "File.h"
 #include "Comparison.h"
@@ -23,17 +22,18 @@
 //	4) Bits encoding the record's data
 
 class Record {
-
 friend class ComparisonEngine;
 friend class Page;
 
 private:
-	char *bits;
+	//char *bits;
 	char* GetBits ();
 	void SetBits (char *bits);
 	void CopyBits(char *bits, int b_len);
 
 public:
+	char *bits;
+
 	Record ();
 	~Record();
 
@@ -50,6 +50,11 @@ public:
 	// that the schema be given; returns a 0 if there is no data left or
 	// if there is an error and returns a 1 otherwise
 	int SuckNextRecord (Schema *mySchema, FILE *textFile);
+
+	/*
+     * Reads the record from a given text. Similar to SuckNextRecord.
+     */
+    int ComposeRecord(Schema *schema, const char *src);
 
 	// this projects away various attributes... 
 	// the array attsToKeep should be sorted, and lists all of the attributes
@@ -69,6 +74,9 @@ public:
 	// Returns the value of size of the relevant record. 
 	// Returns the value of ((int *)this->bits)[0]. The size of the record for the partiular bits
 	int getRecordSize();
+
+    // Returns the number of attributes for the record.
+    int GetAttrCount();
 };
 
 #endif
