@@ -1,6 +1,6 @@
+#include "test.h"
 #include "BigQ.h"
 #include "RelOp.h"
-#include "test.h"
 #include <pthread.h>
 Attribute IA = {"int", Int};
 Attribute SA = {"string", String};

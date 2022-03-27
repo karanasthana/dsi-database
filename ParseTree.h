@@ -1,6 +1,5 @@
-#ifndef PARSETREE_H
-#define PARSETREE_H
-
+#ifndef PARSE_TREE_H
+#define PARSE_TREE_H
 // these are the different types of operators that can appear
 // in a CNF expression
 #define LESS_THAN 1
@@ -53,6 +52,27 @@ struct AndList {
 	struct AndList *rightAnd;
 
 };
-	
-#endif 
+
+struct FuncOperand {
+
+	// this tells us the type of the operand: FLOAT, INT, STRING...
+	int code;
+
+	// this is the actual operand
+	char *value;
+};
+
+struct FuncOperator {
+
+	// this tells us which operator to use: '+', '-', ...
+	int code;
+
+	// these are the operators on the left and on the right
+	struct FuncOperator *leftOperator;
+	struct FuncOperand *leftOperand;
+	struct FuncOperator *right;	
+
+};
+
+#endif
 

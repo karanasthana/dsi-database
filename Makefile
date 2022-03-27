@@ -13,8 +13,8 @@ endif
 gtest: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o gTest.o Sorted.o Heap.o
 	$(CC) -o gtest Record.o gTest.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o Sorted.o Heap.o DBFile.o y.tab.o lex.yy.o $(test_out_tag) $(LD_FLAGS)
 
-test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test.o Sorted.o Heap.o RelOp.o Function.o
-	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o lex.yy.o test.o Sorted.o Heap.o RelOp.o Function.o $(test_out_tag) -l pthread
+test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o  yyfunc.tab.o lex.yy.o lex.yyfunc.o test.o Sorted.o Heap.o RelOp.o Function.o
+	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o  yyfunc.tab.o lex.yy.o lex.yyfunc.o test.o Sorted.o Heap.o RelOp.o Function.o $(test_out_tag) -l pthread
 
 test_a22.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test_a22.o Sorted.o Heap.o
 	$(CC) -o test_a22.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o lex.yy.o test_a22.o Sorted.o Heap.o $(test_out_tag) -l pthread
@@ -90,15 +90,26 @@ y.tab.o: Parser.y
 	sed $(tag) -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/" y.tab.c 
 	g++ -c y.tab.c
 
+yyfunc.tab.o: ParserFunc.y
+	yacc -p "yyfunc" -b "yyfunc" -d ParserFunc.y
+	sed $(tag) yyfunc.tab.c -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/" 
+	g++ -c yyfunc.tab.c
+
 lex.yy.o: Lexer.l
 	lex  Lexer.l
 	gcc  -c lex.yy.c
+
+lex.yyfunc.o: LexerFunc.l
+	lex -Pyyfunc LexerFunc.l
+	gcc  -c lex.yyfunc.c
 
 clean: 
 	rm -f *.o
 	rm -f *.out
 	rm -f y.tab.c
+	rm -f yyfunc.tab.*
 	rm -f lex.yy.c
+	rm -f lex.yyfunc*
 	rm -f y.tab.h
 
 uninstall:	clean
