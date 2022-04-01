@@ -19,8 +19,8 @@ test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ
 test_a22.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test_a22.o Sorted.o Heap.o
 	$(CC) -o test_a22.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o lex.yy.o test_a22.o Sorted.o Heap.o $(test_out_tag) -l pthread
 
-test_a21_old.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test_a21_old.o Sorted.o Heap.o
-	$(CC) -o test_a21_old.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o Sorted.o Heap.o lex.yy.o test_a21_old.o $(test_out_tag) -l pthread
+test_a21_old.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o  yyfunc.tab.o lex.yy.o lex.yyfunc.o test_a21_old.o Sorted.o Heap.o Function.o
+	$(CC) -o test_a21_old.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o Sorted.o Heap.o  yyfunc.tab.o lex.yy.o lex.yyfunc.o test_a21_old.o Function.o $(test_out_tag) -l pthread
 	
 test_a1.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test_a1.o Sorted.o Heap.o
 	$(CC) -o test_a1.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o Sorted.o Heap.o y.tab.o lex.yy.o test_a1.o $(test_out_tag) -l pthread

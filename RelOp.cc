@@ -13,7 +13,7 @@ void RelationalOp::Use_n_Pages(int n) {
 }
 
 void *SelectFileExecute(void *args) {
-    auto *myArgs = (SelectFileArgs*) args;
+    SelectFileArgs *myArgs = (SelectFileArgs*) args;
 
     Record temp;
     while (myArgs->inputFile->GetNext(temp, *myArgs->selectionOp, *myArgs->literal)) {
@@ -26,7 +26,7 @@ void *SelectFileExecute(void *args) {
 }
 
 void SelectFile::Run(DBFile &inputFile, Pipe &outputPipe, CNF &selectionOp, Record &literal) {
-    auto *args = new SelectFileArgs();
+    SelectFileArgs *args = new SelectFileArgs();
     args->inputFile = &inputFile;
     args->outputPipe = &outputPipe;
     args->selectionOp = &selectionOp;
@@ -36,7 +36,7 @@ void SelectFile::Run(DBFile &inputFile, Pipe &outputPipe, CNF &selectionOp, Reco
 }
 
 void *SelectPipeExecute(void *args) {
-    auto *myArgs = (SelectPipeArgs*) args;
+    SelectPipeArgs *myArgs = (SelectPipeArgs*) args;
 
     Record temp;
     ComparisonEngine comparisonEngine;
@@ -52,7 +52,7 @@ void *SelectPipeExecute(void *args) {
 }
 
 void SelectPipe::Run(Pipe &inputPipe, Pipe &outputPipe, CNF &selectionOp, Record &literal) {
-    auto *args = new SelectPipeArgs();
+    SelectPipeArgs *args = new SelectPipeArgs();
     args->inputPipe = &inputPipe;
     args->outputPipe = &outputPipe;
     args->selectionOp = &selectionOp;

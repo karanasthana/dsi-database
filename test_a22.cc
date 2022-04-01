@@ -1,6 +1,7 @@
 #include "test_a22.h"
 #include "BigQ.h"
 #include <pthread.h>
+#include "DBFile.h"
 void test1 ();
 void test2 ();
 void test3 ();

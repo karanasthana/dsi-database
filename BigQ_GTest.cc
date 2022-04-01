@@ -48,7 +48,7 @@
 //     dbfile.Create("nation_3.bin", heap, NULL);
 //     Schema *schema = new Schema("catalog", "nation");
 //     char path[100];
-//     sprintf(path, "%s%s.tbl", "/cise/homes/prateek.agrawal/git/dsi-database/data-files/", "nation");
+//     sprintf(path, "%s%s.tbl", "/cise/homes/karanasthana/git/dbi-project-impl/data-files/", "nation");
 //     dbfile.Load(*schema, path);
 
 //     int numRec = 0;
@@ -88,7 +88,7 @@
 //     dbfile.Create("nation_2.bin", heap, NULL);
 //     Schema *schema = new Schema("catalog", "nation");
 //     char path[100];
-//     sprintf(path, "%s%s.tbl", "/cise/homes/prateek.agrawal/git/dsi-database/data-files/", "nation");
+//     sprintf(path, "%s%s.tbl", "/cise/homes/karanasthana/git/dbi-project-impl/data-files/", "nation");
 //     dbfile.Load(*schema, path);
 
 //     int numRec = 0;
