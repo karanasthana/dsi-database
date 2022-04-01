@@ -1,92 +1,51 @@
 #ifndef BIGQ_H
 #define BIGQ_H
 
-#include <pthread.h>
-#include <iostream>
-#include <queue>
-#include "Pipe.h"
+#include "Comparison.h"
+#include "ComparisonEngine.h"
 #include "File.h"
-#include "Record.h"
+#include "Pipe.h"
+#include <vector>
 
-using namespace std;
+class Run
+{
+private:
+    File *tempFilePtr;
+    Page *bufferPage;
 
-struct WorkerThread {
-    Pipe *iPipe;
-    Pipe *oPipe;
+    off_t currPageIndex, endPageIndex;
+
+public:
+    Record *currentRec;
+
+    Run(File *bigQFile, off_t start, off_t end);
+
+    ~Run();
+
+    int Next(Record *current);
+};
+
+class BigQ
+{
+private:
+    Pipe *input, *output;
     OrderMaker *sortOrder;
     int runLength;
 
-    File bigQFile;
-    char bigQFileName[100];
-    int numberOfRuns;
+    File *bigQFile;
+    const char *tempFileName = "temp.bin";
 
-    Page *currPages;
-    int currPageNum;
+    ComparisonEngine *comp;
 
-    bool isOverflow;
-};
-
-struct PriorityQueueStruct {
-    Page *page;
-    Record *head;
-
-    int pqCurrPageNum;
-    int pqMaxCurrRunPageNum;
-};
-
-struct RecordComparator {
-    OrderMaker *sortOrder;
-
-    RecordComparator(OrderMaker *sortorder) {
-        this->sortOrder = sortorder;
-    }
-
-    bool operator()(Record *left, Record *right) {
-        ComparisonEngine cmp;
-        return cmp.Compare(left, right, this->sortOrder) > 0;
-    }
-
-    bool operator()(const PriorityQueueStruct &left, const PriorityQueueStruct &right) {
-        ComparisonEngine cmp;
-        return cmp.Compare(left.head, right.head, this->sortOrder) > 0;
-    }
-};
-
-
-void *TPMMS(void *tData);
-
-void InitWorkerThread(WorkerThread *tData);
-
-void GenerateRun(WorkerThread *tData);
-
-int AddRecToCurrRun(WorkerThread *tData, Record *nextRecord);
-
-void CustomSortAndWrite(WorkerThread *workerThread);
-
-void PutInPQ(WorkerThread *workerThread,priority_queue<Record *, vector<Record *>, RecordComparator> &pq);
-
-void WriteFromPQ(WorkerThread *workerThread,priority_queue<Record *, vector<Record *>, RecordComparator> &pq);
-
-void SetupNewRun(WorkerThread *workerThread);
-
-void MergeRuns(WorkerThread *workerThread);
-
-void PQLoadMergeRun(WorkerThread *workerThread,
-                               priority_queue<PriorityQueueStruct, vector<PriorityQueueStruct>, RecordComparator> &pq);
-
-void PQLoadOPipe(WorkerThread *workerThread,
-                                         priority_queue<PriorityQueueStruct, vector<PriorityQueueStruct>, RecordComparator> &pq);
-
-void CleanUp(WorkerThread *workerThread);
-
-class BigQ {
-private:
-    pthread_t workerThread;
+    std::vector<off_t> runIndexes;
 
 public:
-    BigQ(Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen);
-
+    BigQ(Pipe &input, Pipe &output, OrderMaker &sortOrder, int runLength);
     ~BigQ();
+
+    void ExecuteSort();
+
+    void ExecuteMerge();
 };
 
-#endif BIGQ_H
+#endif // BIGQ_H
