@@ -145,6 +145,7 @@ void get_cnf (char *input, Schema *left, Function &fn_pred) {
 			cout << " Error: can't parse your arithmetic expr. " << input << endl;
 			exit (1);
 		}
+		cout<< "test.h line 148" << '\n';
 		fn_pred.GrowFromParseTree (finalfunc, *left); // constructs CNF predicate
 		close_lexical_parser_func ();
 }

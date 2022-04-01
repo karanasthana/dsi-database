@@ -30,6 +30,9 @@ private:
 	char* GetBits ();
 	void SetBits (char *bits);
 	void CopyBits(char *bits, int b_len);
+	void Clear();
+
+	static void MemoryValidation(const char *arr);
 
 public:
 	char *bits;
@@ -54,7 +57,7 @@ public:
 	/*
      * Reads the record from a given text. Similar to SuckNextRecord.
      */
-    int ComposeRecord(Schema *schema, const char *src);
+    int ComposeRecord(Schema &schema, const char *src);
 
 	// this projects away various attributes... 
 	// the array attsToKeep should be sorted, and lists all of the attributes

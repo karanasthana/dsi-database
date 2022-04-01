@@ -18,6 +18,11 @@ Record :: ~Record () {
 
 }
 
+void Record::Clear() {
+    delete [] bits;
+    bits = nullptr;
+}
+
 
 int Record :: SuckNextRecord (Schema *mySchema, FILE *textFile) {
 
@@ -173,25 +178,25 @@ void Record :: Copy (Record *copyMe) {
 
 }
 
-int Record::ComposeRecord(Schema *schema, const char *src) {
-    char *attrVal = new (std::nothrow) char[PAGE_SIZE];
-	if (attrVal == NULL)
-	{
-		cout << "ERROR : Not enough memory. EXIT !!!\n";
-		exit(1);
-	}
-    char *rec = new (std::nothrow) char[PAGE_SIZE];
-	if (rec == NULL)
-	{
-		cout << "ERROR : Not enough memory. EXIT !!!\n";
-		exit(1);
-	}
-    //Clear();
+void Record::MemoryValidation(const char *arr) {
+    if (arr == nullptr) {
+        cout << "ERROR : Not enough memory. EXIT !!!\n";
+        exit(1);
+    }
+}
 
-    //vector<Attribute> attrs = schema.GetAtts();
-	Attribute *attrs = schema->GetAtts();
-	int size = schema->GetNumAtts();
-    //int size = attrs->size();
+
+int Record::ComposeRecord(Schema &schema, const char *src) {
+    char *attrVal = new (std::nothrow) char[PAGE_SIZE];
+    MemoryValidation(attrVal);
+
+    char *rec = new (std::nothrow) char[PAGE_SIZE];
+    MemoryValidation(rec);
+
+    Clear();
+
+    Attribute* attrs = schema.GetAtts();
+    int size = schema.GetNumAtts();
 
     // current position (int bytes) in the binary representation of the record that we are dealing with
     int currentPosInRec = sizeof(int) * (size + 1);
@@ -253,11 +258,7 @@ int Record::ComposeRecord(Schema *schema, const char *src) {
 
     // Copy over the bits
     bits = new (std::nothrow) char[currentPosInRec];
-    if (bits == NULL)
-	{
-		cout << "ERROR : Not enough memory. EXIT !!!\n";
-		exit(1);
-	}
+    MemoryValidation(bits);
 
     memcpy(bits, rec, currentPosInRec);
 
@@ -412,7 +413,9 @@ void Record :: MergeRecords (Record *left, Record *right, int numAttsLeft, int n
 
 void Record :: Print (Schema *mySchema) {
 
+	cout << "Record.cc Line 416" << '\n';
 	int n = mySchema->GetNumAtts();
+	cout << "Record.cc Line 418 -> " << n << '\n';
 	Attribute *atts = mySchema->GetAtts();
 
 	// loop through all of the attributes

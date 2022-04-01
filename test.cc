@@ -11,11 +11,27 @@ int clear_pipe (Pipe &in_pipe, Schema *schema, bool print) {
 	int cnt = 0;
 	while (in_pipe.Remove (&rec)) {
 		if (print) {
+			cout << "line 14 : " << '\n';
 			rec.Print (schema);
+			cout << "line 16 : " << '\n';
 		}
 		cnt++;
 	}
 	return cnt;
+}
+
+int clearPipe(Pipe &pipe, Schema *schema, bool shouldPrint) {
+    int count = 0;
+
+    Record rec;
+    while (pipe.Remove(&rec)) {
+        if (shouldPrint) {
+			rec.Print(schema);
+		}
+        count++;
+    }
+
+    return count;
 }
 
 int clear_pipe (Pipe &in_pipe, Schema *schema, Function &func, bool print) {
@@ -113,8 +129,6 @@ void q2 () {
 	char *pred_p = "(p_retailprice > 931.00) AND (p_retailprice < 931.4)";
 	init_SF_p (pred_p, 100);
 
-    cout << 'line 116' << '\n';
-
 	Project P_p;
     Pipe _out (pipesz);
     int keepMe[] = {0,1,7};
@@ -129,9 +143,12 @@ void q2 () {
 	P_p.WaitUntilDone ();
 
 	Attribute att3[] = {IA, SA, DA};
-	Schema out_sch ("out_sch", numAttsOut, att3);
-	int cnt = clear_pipe (_p, p->schema (), true);
 
+	Schema out_sch ("out_sch", numAttsOut, att3);
+	cout << "line 144 " << '\n';
+
+	// int cnt = clearPipe (_out, &out_sch , true);
+	int cnt = clear_pipe (_out, &out_sch, true);
 	cout << "\n\n query2 returned " << cnt << " records \n";
 
 	dbf_p.Close ();
@@ -159,6 +176,7 @@ void q3 () {
 	T.WaitUntilDone ();
 
 	Schema out_sch ("out_sch", 1, &DA);
+	cout << "line 177" << '\n';
 	int cnt = clear_pipe (_out, &out_sch, true);
 
 	cout << "\n\n query3 returned " << cnt << " records \n";
@@ -174,43 +192,69 @@ void q4 () {
 
 	cout << " query4 \n";
 	char *pred_s = "(s_suppkey = s_suppkey)";
+	cout << "line 187" << '\n';
+
 	init_SF_s (pred_s, 100);
+	cout << "line 190" << '\n';
 	SF_s.Run (dbf_s, _s, cnf_s, lit_s); // 10k recs qualified
+	cout << "line 192" << '\n';
 
 	char *pred_ps = "(ps_suppkey = ps_suppkey)";
+	cout << "line 195" << '\n';
 	init_SF_ps (pred_ps, 100);
 
+	cout << "line 198" << '\n';
 	Join J;
 		// left _s
 		// right _ps
 		Pipe _s_ps (pipesz);
 		CNF cnf_p_ps;
 		Record lit_p_ps;
+	cout << "line 205" << '\n';
 		get_cnf ("(s_suppkey = ps_suppkey)", s->schema(), ps->schema(), cnf_p_ps, lit_p_ps);
+	cout << "line 207" << '\n';
 
 	int outAtts = sAtts + psAtts;
+	cout << "line 210" << '\n';
 	Attribute ps_supplycost = {"ps_supplycost", Double};
+	cout << "line 212" << '\n';
 	Attribute joinatt[] = {IA,SA,SA,IA,SA,DA,SA, IA,IA,IA,ps_supplycost,SA};
+	cout << "line 214" << '\n';
 	Schema join_sch ("join_sch", outAtts, joinatt);
+	cout << "line 216" << '\n';
 
 	Sum T;
 		// _s (input pipe)
+	cout << "line 220" << '\n';
 		Pipe _out (1);
+	cout << "line 222" << '\n';
 		Function func;
 			char *str_sum = "(ps_supplycost)";
+	cout << "line 225" << '\n';
+	cout << str_sum << '\n';
 			get_cnf (str_sum, &join_sch, func);
+	cout << "line 227" << '\n';
 			func.Print ();
+	cout << "line 228" << '\n';
 	T.Use_n_Pages (1);
 
+	cout << "line 231" << '\n';
 	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps); // 161 recs qualified
+	cout << "line 233" << '\n';
 	J.Run (_s, _ps, _s_ps, cnf_p_ps, lit_p_ps);
+	cout << "line 235" << '\n';
 	T.Run (_s_ps, _out, func);
 
+	cout << "line 238" << '\n';
 	SF_ps.WaitUntilDone ();
+	cout << "line 240" << '\n';
 	J.WaitUntilDone ();
+	cout << "line 242" << '\n';
 	T.WaitUntilDone ();
 
+	cout << "line 245" << '\n';
 	Schema sum_sch ("sum_sch", 1, &DA);
+	cout << "line 247" << '\n';
 	int cnt = clear_pipe (_out, &sum_sch, true);
 	cout << " query4 returned " << cnt << " recs \n";
 }
