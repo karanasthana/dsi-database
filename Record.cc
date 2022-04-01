@@ -173,6 +173,100 @@ void Record :: Copy (Record *copyMe) {
 
 }
 
+int Record::ComposeRecord(Schema *schema, const char *src) {
+    char *attrVal = new (std::nothrow) char[PAGE_SIZE];
+	if (attrVal == NULL)
+	{
+		cout << "ERROR : Not enough memory. EXIT !!!\n";
+		exit(1);
+	}
+    char *rec = new (std::nothrow) char[PAGE_SIZE];
+	if (rec == NULL)
+	{
+		cout << "ERROR : Not enough memory. EXIT !!!\n";
+		exit(1);
+	}
+    //Clear();
+
+    //vector<Attribute> attrs = schema.GetAtts();
+	Attribute *attrs = schema->GetAtts();
+	int size = schema->GetNumAtts();
+    //int size = attrs->size();
+
+    // current position (int bytes) in the binary representation of the record that we are dealing with
+    int currentPosInRec = sizeof(int) * (size + 1);
+
+    // loop through all of the attributes
+    int cursor = 0;
+    for (int index = 0; index < size; index++) {
+        int len = 0;
+
+        // Read character by character, the record is pipe ('|') separated.
+        // e.g "0|ALGERIA|0| haggle. carefully final deposits detect slyly agai|"
+        while (true) {
+            int nextChar = src[cursor++];
+            if (nextChar == '|') break;
+            else if (nextChar == '\0') {
+                delete [] attrVal;
+                delete [] rec;
+                return 0;
+            }
+
+            attrVal[len] = (char) nextChar;
+            len++;
+        }
+
+        ((int*) rec)[index + 1] = currentPosInRec;
+
+        // Null terminate the string
+        attrVal[len] = 0;
+        len++;
+
+        // Convert the data to correct binary representation
+        if (attrs[index].myType == Int) {
+            *((int *) &(rec[currentPosInRec])) = atoi(attrVal);
+            currentPosInRec += sizeof(int);
+        }
+        else if (attrs[index].myType == Double) {
+            // align things to the size of an integer if needed
+            while (currentPosInRec % sizeof(double) != 0) {
+                currentPosInRec += sizeof(int);
+                ((int *) rec)[index + 1] = currentPosInRec;
+            }
+
+            *((double *) &(rec[currentPosInRec])) = atof(attrVal);
+            currentPosInRec += sizeof(double);
+        }
+        else if (attrs[index].myType == String) {
+            // align things to the size of an integer if needed
+            if (len % sizeof(int) != 0) {
+                len += sizeof(int) - (len % sizeof(int));
+            }
+
+            strcpy(&(rec[currentPosInRec]), attrVal);
+            currentPosInRec += len;
+        }
+    }
+
+    // Set up the pointer to just past the end of the record
+    ((int *) rec)[0] = currentPosInRec;
+
+    // Copy over the bits
+    bits = new (std::nothrow) char[currentPosInRec];
+    if (bits == NULL)
+	{
+		cout << "ERROR : Not enough memory. EXIT !!!\n";
+		exit(1);
+	}
+
+    memcpy(bits, rec, currentPosInRec);
+
+    delete [] attrVal;
+    delete [] rec;
+
+    return 1;
+}
+
 void Record :: Project (int *attsToKeep, int numAttsToKeep, int numAttsNow) {
 	// first, figure out the size of the new record
 	int totSpace = sizeof (int) * (numAttsToKeep + 1);
@@ -366,3 +460,7 @@ int Record :: getRecordSize () {
 	return ((int *)this->bits)[0];
 }
 
+int Record :: GetAttrCount() {
+    if (bits == nullptr) return 0;
+    return ((int *) bits)[1] / sizeof(int) - 1;
+}

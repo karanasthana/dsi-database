@@ -61,7 +61,7 @@ int Heap::Close()
     metadataFile.open(metadataFilePath.c_str());
     if (!metadataFile.is_open())
     {
-        cout << "Not able to create meta data file " << metadataFilePath << endl;
+        cout << "HEAP : Not able to create meta data file " << metadataFilePath << endl;
         exit(1);
     }
     metadataFile << FILE_TYPE_HEAP;

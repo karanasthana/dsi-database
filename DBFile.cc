@@ -83,7 +83,7 @@ int DBFile::Open(const char *filePath)
     }
     else
     {
-        cout << "Not able to create the metadata file " << metadataFilePath << endl;
+        cout << "DBFILE : Not able to create the metadata file " << metadataFilePath << endl;
         return 0;
     }
 

@@ -220,7 +220,7 @@ int Sorted::Close()
     metadataFile.open(metadataFilePath.c_str());
     if (!metadataFile.is_open())
     {
-        cout << "Not able to create meta data file " << metadataFilePath << '\n';
+        cout << "SORTED : Not able to create meta data file " << metadataFilePath << '\n';
         exit(1);
     }
 

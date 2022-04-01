@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <fstream>
+#include <iterator>
+#include <sstream>
 
 int Schema :: Find (const char *attName) {
 
@@ -36,6 +39,16 @@ Attribute *Schema :: GetAtts () {
 	return myAtts;
 }
 
+Schema :: Schema (const char *fName, int numAttrs, Attribute *attrs) {
+    //this->fileName = fileName;
+	myAtts = new Attribute[numAtts];
+    for (int i = 0; i < numAttrs; i++) {
+        //Attribute attr;
+        myAtts[i].name = attrs[i].name;
+        myAtts[i].myType = attrs[i].myType;
+        //this->attrs.push_back(attr);
+    }
+}
 Schema :: Schema (const char *fName, const char *relName) {
 
 	FILE *foo = fopen (fName, "r");

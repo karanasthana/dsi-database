@@ -13,11 +13,14 @@ endif
 gtest: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o gTest.o Sorted.o Heap.o
 	$(CC) -o gtest Record.o gTest.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o Sorted.o Heap.o DBFile.o y.tab.o lex.yy.o $(test_out_tag) $(LD_FLAGS)
 
-test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test.o Sorted.o Heap.o
-	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o lex.yy.o test.o Sorted.o Heap.o $(test_out_tag) -l pthread
+test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o  yyfunc.tab.o lex.yy.o lex.yyfunc.o test.o Sorted.o Heap.o RelOp.o Function.o
+	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o  yyfunc.tab.o lex.yy.o lex.yyfunc.o test.o Sorted.o Heap.o RelOp.o Function.o $(test_out_tag) -l pthread
 
-test_a21_old.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test_a21_old.o Sorted.o Heap.o
-	$(CC) -o test_a21_old.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o Sorted.o Heap.o lex.yy.o test_a21_old.o $(test_out_tag) -l pthread
+test_a22.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test_a22.o Sorted.o Heap.o
+	$(CC) -o test_a22.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o lex.yy.o test_a22.o Sorted.o Heap.o $(test_out_tag) -l pthread
+
+test_a21_old.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o  yyfunc.tab.o lex.yy.o lex.yyfunc.o test_a21_old.o Sorted.o Heap.o Function.o
+	$(CC) -o test_a21_old.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o Sorted.o Heap.o  yyfunc.tab.o lex.yy.o lex.yyfunc.o test_a21_old.o Function.o $(test_out_tag) -l pthread
 	
 test_a1.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test_a1.o Sorted.o Heap.o
 	$(CC) -o test_a1.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o Sorted.o Heap.o y.tab.o lex.yy.o test_a1.o $(test_out_tag) -l pthread
@@ -33,6 +36,9 @@ gTest.o:
 
 test.o: test.cc
 	$(CC) -g -c test.cc
+
+test_a22.o: test_a22.cc
+	$(CC) -g -c test_a22.cc
 
 test_a21_old.o: test_a21_old.cc
 	$(CC) -g -c test_a21_old.cc
@@ -55,8 +61,14 @@ DBFile.o: DBFile.cc
 File.o: File.cc
 	$(CC) -g -c File.cc
 
+Function.o: Function.cc
+	$(CC) -g -c Function.cc
+
 Record.o: Record.cc
 	$(CC) -g -c Record.cc
+
+RelOp.o: RelOp.cc
+	$(CC) -g -c RelOp.cc
 
 Schema.o: Schema.cc
 	$(CC) -g -c Schema.cc
@@ -78,15 +90,26 @@ y.tab.o: Parser.y
 	sed $(tag) -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/" y.tab.c 
 	g++ -c y.tab.c
 
+yyfunc.tab.o: ParserFunc.y
+	yacc -p "yyfunc" -b "yyfunc" -d ParserFunc.y
+	sed $(tag) yyfunc.tab.c -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/" 
+	g++ -c yyfunc.tab.c
+
 lex.yy.o: Lexer.l
 	lex  Lexer.l
 	gcc  -c lex.yy.c
+
+lex.yyfunc.o: LexerFunc.l
+	lex -Pyyfunc LexerFunc.l
+	gcc  -c lex.yyfunc.c
 
 clean: 
 	rm -f *.o
 	rm -f *.out
 	rm -f y.tab.c
+	rm -f yyfunc.tab.*
 	rm -f lex.yy.c
+	rm -f lex.yyfunc*
 	rm -f y.tab.h
 
 uninstall:	clean
