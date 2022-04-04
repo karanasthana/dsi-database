@@ -3,8 +3,8 @@
 #include "test_a1.h"
 
 // make sure that the file path/dir information below is correct
-const char *dbfile_dir = ""; // dir where binary heap files should be stored
-const char *tpch_dir ="/cise/homes/karanasthana/git/dbi-project-impl/data-files/"; // dir where dbgen tpch files (extension *.tbl) can be found
+const char *dbfile_dir = "../bin/heap/"; // dir where binary heap files should be stored
+const char *tpch_dir ="../tpch-dbgen/"; // dir where dbgen tpch files (extension *.tbl) can be found
 const char *catalog_path = "catalog"; // full path of the catalog file
 
 using namespace std;

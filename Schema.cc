@@ -8,11 +8,11 @@
 #include <sstream>
 
 int Schema :: Find (const char *attName) {
-	cout << attName << " AND THE NUMATTS ARE - " << numAtts << '\n';
+	// cout << attName << " AND THE NUMATTS ARE - " << numAtts << '\n';
 	for (int i = 0; i < numAtts; i++) {
-		cout << myAtts[i].name << '\n';
+		// cout << myAtts[i].name << '\n';
 		if (!strcmp (attName, myAtts[i].name)) {
-			cout << '\n' << '\n';
+			// cout << '\n' << '\n';
 			return i;
 		}
 	}
@@ -53,12 +53,12 @@ Schema :: Schema (const char *fName, int numAttrs, Attribute *attrs) {
     // }
 	// cout<<"Schema.cc line 51" << fName << '\n';
 	this->fileName = fName;
-	cout<<"Schema.cc line 53" << this->fileName << " and numAtts is - " << numAtts << " and numAttrs is - " << numAttrs << '\n';
+	// cout<<"Schema.cc line 53" << this->fileName << " and numAtts is - " << numAtts << " and numAttrs is - " << numAttrs << '\n';
 	myAtts = new Attribute[numAttrs];
     for (int i = 0; i < numAttrs; i++) {
 		// cout<<"Schema.cc line 55 for i = " << i << '\n';
         Attribute attr;
-		cout<<"Schema.cc line 57 for i = " << i << " name->" << attrs[i].name << " type->" << attrs[i].myType << '\n';
+		// cout<<"Schema.cc line 57 for i = " << i << " name->" << attrs[i].name << " type->" << attrs[i].myType << '\n';
         attr.name = attrs[i].name;
 		// cout<<"Schema.cc line 59 for i = " << i << '\n';
         attr.myType = attrs[i].myType;

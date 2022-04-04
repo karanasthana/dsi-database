@@ -14,7 +14,7 @@ using namespace std;
 
 char *catalog_path = "catalog"; 
 char *dbfile_dir = ""; 
-char *tpch_dir ="data-files/"; 
+char *tpch_dir ="../tpch-dbgen/"; 
 
 
 extern "C" {

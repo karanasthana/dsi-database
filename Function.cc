@@ -9,11 +9,11 @@ Function :: Function () {
 
 Type Function :: RecursivelyBuild (struct FuncOperator *parseTree, Schema &mySchema) {
 
-	cout << "Function.cc line 12 : parseTree->code -> " << parseTree->code << '\n';
-	cout << "Function.cc line 13 : parseTree->right -> " << parseTree->right << '\n';
+	// cout << "Function.cc line 12 : parseTree->code -> " << parseTree->code << '\n';
+	// cout << "Function.cc line 13 : parseTree->right -> " << parseTree->right << '\n';
 	// cout << "Function.cc line 14 : parseTree->left -> " << parseTree->left << '\n';
-	cout << "Function.cc line 15 : parseTree->leftOperator -> " << parseTree->leftOperator << '\n';
-	cout << "Function.cc line 16 : parseTree->leftOperand -> " << parseTree->leftOperand << '\n';
+	// cout << "Function.cc line 15 : parseTree->leftOperator -> " << parseTree->leftOperator << '\n';
+	// cout << "Function.cc line 16 : parseTree->leftOperand -> " << parseTree->leftOperand << '\n';
 	// cout << "Function.cc line 17 : parseTree->rightOperator -> " << parseTree->rightOperator << '\n';
 	// cout << "Function.cc line 18 : parseTree->righttOperand -> " << parseTree->righttOperand << '\n';
 

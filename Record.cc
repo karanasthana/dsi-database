@@ -413,9 +413,9 @@ void Record :: MergeRecords (Record *left, Record *right, int numAttsLeft, int n
 
 void Record :: Print (Schema *mySchema) {
 
-	cout << "Record.cc Line 416" << '\n';
+	// cout << "Record.cc Line 416" << '\n';
 	int n = mySchema->GetNumAtts();
-	cout << "Record.cc Line 418 -> " << n << '\n';
+	// cout << "Record.cc Line 418 -> " << n << '\n';
 	Attribute *atts = mySchema->GetAtts();
 
 	// loop through all of the attributes

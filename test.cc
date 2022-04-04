@@ -11,9 +11,9 @@ int clear_pipe (Pipe &in_pipe, Schema *schema, bool print) {
 	int cnt = 0;
 	while (in_pipe.Remove (&rec)) {
 		if (print) {
-			cout << "line 14 : " << '\n';
-			rec.Print (schema);
-			cout << "line 16 : " << '\n';
+			// cout << "line 14 : " << '\n';
+			// rec.Print (schema);
+			// cout << "line 16 : " << '\n';
 		}
 		cnt++;
 	}
@@ -145,7 +145,7 @@ void q2 () {
 	Attribute att3[] = {IA, SA, DA};
 
 	Schema out_sch ("out_sch", numAttsOut, att3);
-	cout << "line 144 " << '\n';
+	// cout << "line 144 " << '\n';
 
 	// int cnt = clearPipe (_out, &out_sch , true);
 	int cnt = clear_pipe (_out, &out_sch, true);

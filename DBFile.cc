@@ -22,6 +22,7 @@ DBFile::~DBFile()
 
 int DBFile::Create(const char *filePath, typeOfFile type, void *startUp)
 {
+    cout << "DBFILE: Create" << endl;
     if (filePath == nullptr || type < heap || type > tree)
         return 0;
 
