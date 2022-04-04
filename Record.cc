@@ -187,19 +187,26 @@ void Record::MemoryValidation(const char *arr) {
 
 
 int Record::ComposeRecord(Schema &schema, const char *src) {
-    char *attrVal = new (std::nothrow) char[PAGE_SIZE];
+    // cout << "ComposeRecord - Line 190 " << endl;
+	// cout << "ComposeRecord - Line 191 " << src << endl;
+	char *attrVal = new (std::nothrow) char[PAGE_SIZE];
     MemoryValidation(attrVal);
+	// cout << "ComposeRecord - Line 194" << endl;
 
     char *rec = new (std::nothrow) char[PAGE_SIZE];
     MemoryValidation(rec);
+	// cout << "ComposeRecord - Line 198" << endl;
+	// cout << "ComposeRecord - Line 199" << endl;
 
     Clear();
 
     Attribute* attrs = schema.GetAtts();
     int size = schema.GetNumAtts();
+	// cout << "ComposeRecord - line 205" << size << '\n';
 
     // current position (int bytes) in the binary representation of the record that we are dealing with
     int currentPosInRec = sizeof(int) * (size + 1);
+	// cout << "ComposeRecord - line 209" << currentPosInRec << '\n';
 
     // loop through all of the attributes
     int cursor = 0;
@@ -417,10 +424,12 @@ void Record :: Print (Schema *mySchema) {
 	int n = mySchema->GetNumAtts();
 	// cout << "Record.cc Line 418 -> " << n << '\n';
 	Attribute *atts = mySchema->GetAtts();
+	// cout << "Record.cc Line 420 -> " << atts[0].name << '\n';
 
 	// loop through all of the attributes
 	for (int i = 0; i < n; i++) {
 
+		// cout << "Record.cc - Line 425" << '\n';
 		// print the attribute name
 		cout << atts[i].name << ": ";
 
@@ -440,12 +449,12 @@ void Record :: Print (Schema *mySchema) {
 		// then is a double
 		} else if (atts[i].myType == Double) {
 			double *myDouble = (double *) &(bits[pointer]);
-			cout << *myDouble;	
+			cout << *myDouble;
 
 		// then is a character string
 		} else if (atts[i].myType == String) {
 			char *myString = (char *) &(bits[pointer]);
-			cout << myString;	
+			cout << myString;
 		} 
 
 		cout << "]";

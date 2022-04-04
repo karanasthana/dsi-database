@@ -43,26 +43,27 @@ Attribute *Schema :: GetAtts () {
 }
 
 Schema :: Schema (const char *fName, int numAttrs, Attribute *attrs) {
-    // //this->fileName = fileName;
-	// myAtts = new Attribute[numAtts];
+    // //fileName = fileName;
+	// myAtts = new Attribute[numAttrs];
     // for (int i = 0; i < numAttrs; i++) {
     //     //Attribute attr;
     //     myAtts[i].name = attrs[i].name;
     //     myAtts[i].myType = attrs[i].myType;
-    //     //this->attrs.push_back(attr);
+    //     //attrs.push_back(attr);
     // }
 	// cout<<"Schema.cc line 51" << fName << '\n';
-	this->fileName = fName;
-	// cout<<"Schema.cc line 53" << this->fileName << " and numAtts is - " << numAtts << " and numAttrs is - " << numAttrs << '\n';
-	myAtts = new Attribute[numAttrs];
-    for (int i = 0; i < numAttrs; i++) {
+	fileName = fName;
+	numAtts = numAttrs;
+	// cout<<"Schema.cc line 56 " << fileName << " and numAttrs is - " << numAttrs << " and numAttrs is - " << numAttrs << '\n';
+	myAtts = new Attribute[numAtts];
+    for (int i = 0; i < numAtts; i++) {
 		// cout<<"Schema.cc line 55 for i = " << i << '\n';
         Attribute attr;
 		// cout<<"Schema.cc line 57 for i = " << i << " name->" << attrs[i].name << " type->" << attrs[i].myType << '\n';
         attr.name = attrs[i].name;
 		// cout<<"Schema.cc line 59 for i = " << i << '\n';
         attr.myType = attrs[i].myType;
-		// cout<<"Schema.cc line 61 for i = " << i << '\n';
+		// cout<<"Schema.cc line 61 for i = " << i << " and myType " << attrs[i].myType << " and name " << attrs[i].name << '\n';
         myAtts[i] = attr;
 		// cout<<"Schema.cc line 63 for i = " << i << '\n';
     }
@@ -128,6 +129,7 @@ Schema :: Schema (const char *fName, const char *relName) {
 			numAtts++;
 		}
 	}
+	// cout << "Line 131 " << numAtts << " and fName - " << fName << " and relName - " << relName << endl;
 
 	// now actually load up the schema
 	fclose (foo);

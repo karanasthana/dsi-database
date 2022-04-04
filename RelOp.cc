@@ -361,6 +361,7 @@
 #include <vector>
 
 void RelationalOp::WaitUntilDone() const {
+    cout << "WAITUNTILDONE" << '\n';
     pthread_join(thread, nullptr);
 }
 
@@ -676,6 +677,9 @@ void *SumExecute(void *args) {
     double doubleVal = 0;
 
     Record temp;
+
+    // cout << "Rel Op - 680 " << '\n';
+
     while (myArgs->inputPipe->Remove(&temp)) {
         intVal = 0; doubleVal = 0;
 
@@ -683,8 +687,14 @@ void *SumExecute(void *args) {
         sum += (intVal + doubleVal);
     }
 
+    // cout << "Rel Op - 689 - sum is " << sum << '\n';
+
     Attribute attr = {"sum", Double};
     Schema sumSchema("sumSchema", 1, &attr);
+    // cout << "Rel Op - 693 " << sum << '\n';
+    // cout << "Rel Op - 694 " << std::to_string(sum) << '\n';
+    // cout << "Rel Op - 695 " << sumSchema.GetNumAtts() << '\n';
+
     temp.ComposeRecord(sumSchema, (std::to_string(sum) + "|").c_str());
 
     myArgs->outputPipe->Insert(&temp);

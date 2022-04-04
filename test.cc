@@ -9,30 +9,34 @@ Attribute DA = {"double", Double};
 int clear_pipe (Pipe &in_pipe, Schema *schema, bool print) {
 	Record rec;
 	int cnt = 0;
+	cout << "schema.numAtts --> " << schema->GetNumAtts() << '\n';
+	cout << "Test.cc line 12 : " << '\n';
 	while (in_pipe.Remove (&rec)) {
 		if (print) {
-			// cout << "line 14 : " << '\n';
-			// rec.Print (schema);
-			// cout << "line 16 : " << '\n';
+			cout << "Test.cc line 14 : " << '\n';
+			rec.Print (schema);
+			cout << "Test.cc line 16 : " << '\n';
 		}
+		cout << "Test.cc line 19 : " << '\n';
 		cnt++;
 	}
+	cout << "Test.cc line 22 : " << '\n';
 	return cnt;
 }
 
-int clearPipe(Pipe &pipe, Schema *schema, bool shouldPrint) {
-    int count = 0;
+// int clearPipe(Pipe &pipe, Schema *schema, bool shouldPrint) {
+//     int count = 0;
 
-    Record rec;
-    while (pipe.Remove(&rec)) {
-        if (shouldPrint) {
-			rec.Print(schema);
-		}
-        count++;
-    }
+//     Record rec;
+//     while (pipe.Remove(&rec)) {
+//         if (shouldPrint) {
+// 			rec.Print(schema);
+// 		}
+//         count++;
+//     }
 
-    return count;
-}
+//     return count;
+// }
 
 int clear_pipe (Pipe &in_pipe, Schema *schema, Function &func, bool print) {
 	Record rec;
@@ -40,6 +44,7 @@ int clear_pipe (Pipe &in_pipe, Schema *schema, Function &func, bool print) {
 	double sum = 0;
 	while (in_pipe.Remove (&rec)) {
 		if (print) {
+			cout << "Line 43 " << endl;
 			rec.Print (schema);
 		}
 		int ival = 0; double dval = 0;
@@ -82,6 +87,7 @@ void init_SF_p (char *pred_str, int numpgs) {
 }
 
 void init_SF_s (char *pred_str, int numpgs) {
+	// cout << "test.cc Line 86: s->path() - " << s->path() << endl;
 	dbf_s.Open (s->path());
 	get_cnf (pred_str, s->schema (), cnf_s, lit_s);
 	SF_s.Use_n_Pages (numpgs);
@@ -125,7 +131,7 @@ void q1 () {
 // select p_partkey(0), p_name(1), p_retailprice(7) from part where (p_retailprice > 931.01) AND (p_retailprice < 931.3);
 // expected output: 22 records
 void q2 () {
-
+	cout << '\n' << 'query 2 started' << '\n';
 	char *pred_p = "(p_retailprice > 931.00) AND (p_retailprice < 931.4)";
 	init_SF_p (pred_p, 100);
 
@@ -157,17 +163,17 @@ void q2 () {
 // select sum (s_acctbal + (s_acctbal * 1.05)) from supplier;
 // expected output: 9.24623e+07
 void q3 () {
-
+	// cout << '\n' << "query 3 started" << '\n';
 	char *pred_s = "(s_suppkey = s_suppkey)";
 	init_SF_s (pred_s, 100);
 
 	Sum T;
 		// _s (input pipe)
-		Pipe _out (1);
-		Function func;
-			char *str_sum = "(s_acctbal + (s_acctbal * 1.05))";
-			get_cnf (str_sum, s->schema (), func);
-			func.Print ();
+	Pipe _out (1);
+	Function func;
+	char *str_sum = "(s_acctbal + (s_acctbal * 1.05))";
+	get_cnf (str_sum, s->schema (), func);
+	func.Print ();
 	T.Use_n_Pages (1);
 	SF_s.Run (dbf_s, _s, cnf_s, lit_s);
 	T.Run (_s, _out, func);
@@ -176,7 +182,7 @@ void q3 () {
 	T.WaitUntilDone ();
 
 	Schema out_sch ("out_sch", 1, &DA);
-	cout << "line 177" << '\n';
+	// cout << "Test.cc line 177" << '\n';
 	int cnt = clear_pipe (_out, &out_sch, true);
 
 	cout << "\n\n query3 returned " << cnt << " records \n";

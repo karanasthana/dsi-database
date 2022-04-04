@@ -121,6 +121,8 @@
 #include "Pipe.h"
 #include "Record.h"
 
+#include <iostream>
+
 class RelationalOp {
 protected:
     int runLength;
