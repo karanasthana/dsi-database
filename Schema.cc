@@ -52,10 +52,10 @@ Schema :: Schema (const char *fName, int numAttrs, Attribute *attrs) {
     //     //attrs.push_back(attr);
     // }
 	// cout<<"Schema.cc line 51" << fName << '\n';
-	fileName = fName;
-	numAtts = numAttrs;
+	this->fileName = fName;
+	this->numAtts = numAttrs;
 	// cout<<"Schema.cc line 56 " << fileName << " and numAttrs is - " << numAttrs << " and numAttrs is - " << numAttrs << '\n';
-	myAtts = new Attribute[numAtts];
+	this->myAtts = new Attribute[this->numAtts];
     for (int i = 0; i < numAtts; i++) {
 		// cout<<"Schema.cc line 55 for i = " << i << '\n';
         Attribute attr;
@@ -64,7 +64,7 @@ Schema :: Schema (const char *fName, int numAttrs, Attribute *attrs) {
 		// cout<<"Schema.cc line 59 for i = " << i << '\n';
         attr.myType = attrs[i].myType;
 		// cout<<"Schema.cc line 61 for i = " << i << " and myType " << attrs[i].myType << " and name " << attrs[i].name << '\n';
-        myAtts[i] = attr;
+        this->myAtts[i] = attr;
 		// cout<<"Schema.cc line 63 for i = " << i << '\n';
     }
 }

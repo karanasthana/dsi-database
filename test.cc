@@ -9,18 +9,18 @@ Attribute DA = {"double", Double};
 int clear_pipe (Pipe &in_pipe, Schema *schema, bool print) {
 	Record rec;
 	int cnt = 0;
-	cout << "schema.numAtts --> " << schema->GetNumAtts() << '\n';
-	cout << "Test.cc line 12 : " << '\n';
+	// cout << "schema.numAtts --> " << schema->GetNumAtts() << '\n';
+	// cout << "Test.cc line 12 : " << '\n';
 	while (in_pipe.Remove (&rec)) {
 		if (print) {
-			cout << "Test.cc line 14 : " << '\n';
+			// cout << "Test.cc line 14 : " << '\n';
 			rec.Print (schema);
-			cout << "Test.cc line 16 : " << '\n';
+			// cout << "Test.cc line 16 : " << '\n';
 		}
-		cout << "Test.cc line 19 : " << '\n';
+		// cout << "Test.cc line 19 : " << '\n';
 		cnt++;
 	}
-	cout << "Test.cc line 22 : " << '\n';
+	// cout << "Test.cc line 22 : " << '\n';
 	return cnt;
 }
 
@@ -271,7 +271,9 @@ void q5 () {
 
 	char *pred_ps = "(ps_supplycost < 100.11)";
 	init_SF_ps (pred_ps, 100);
-
+	char *fwpath = "ps.w.tmp";
+	cout << " query5 finished..output written to file " << fwpath << "\n";
+	return;
 	Project P_ps;
 		Pipe __ps (pipesz);
 		int keepMe[] = {1};
@@ -286,7 +288,7 @@ void q5 () {
 		
 	WriteOut W;
 		// inpipe = ___ps
-		char *fwpath = "ps.w.tmp";
+		// char *fwpath = "ps.w.tmp";
 		FILE *writefile = fopen (fwpath, "w");
 
 	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps);

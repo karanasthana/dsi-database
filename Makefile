@@ -10,8 +10,8 @@ tag = -n
 test_out_tag = -lfl
 endif
 
-gtest: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o gTest.o Sorted.o Heap.o
-	$(CC) -o gtest Record.o gTest.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o Sorted.o Heap.o DBFile.o y.tab.o lex.yy.o $(test_out_tag) $(LD_FLAGS)
+gtest: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o gTest.o Sorted.o Heap.o RelOp.o Function.o
+	$(CC) -o gtest Record.o gTest.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o Sorted.o Heap.o DBFile.o y.tab.o yyfunc.tab.o lex.yy.o RelOp.o lex.yyfunc.o Function.o $(test_out_tag) $(LD_FLAGS)
 
 test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o  yyfunc.tab.o lex.yy.o lex.yyfunc.o test.o Sorted.o Heap.o RelOp.o Function.o
 	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o  yyfunc.tab.o lex.yy.o lex.yyfunc.o test.o Sorted.o Heap.o RelOp.o Function.o $(test_out_tag) -l pthread

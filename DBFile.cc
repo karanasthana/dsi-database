@@ -22,7 +22,7 @@ DBFile::~DBFile()
 
 int DBFile::Create(const char *filePath, typeOfFile type, void *startUp)
 {
-    cout << "DBFILE: Create" << endl;
+    // cout << "DBFILE: Create" << endl;
     if (filePath == nullptr || type < heap || type > tree)
         return 0;
 
@@ -84,7 +84,7 @@ int DBFile::Open(const char *filePath)
     }
     else
     {
-        cout << "DBFILE : Not able to create the metadata file " << metadataFilePath << endl;
+        // cout << "DBFILE : Not able to create the metadata file " << metadataFilePath << endl;
         return 0;
     }
 

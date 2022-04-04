@@ -361,7 +361,7 @@
 #include <vector>
 
 void RelationalOp::WaitUntilDone() const {
-    cout << "WAITUNTILDONE" << '\n';
+    // cout << "WAITUNTILDONE" << '\n';
     pthread_join(thread, nullptr);
 }
 
