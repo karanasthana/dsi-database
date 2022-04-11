@@ -145,7 +145,6 @@ void get_cnf (char *input, Schema *left, Function &fn_pred) {
 			cout << " Error: can't parse your arithmetic expr. " << input << endl;
 			exit (1);
 		}
-		// cout<< "test.h line 148" << '\n';
 		fn_pred.GrowFromParseTree (finalfunc, *left); // constructs CNF predicate
 		close_lexical_parser_func ();
 }
@@ -188,11 +187,11 @@ void setup () {
 		cerr << " Test settings files 'test.cat' missing \n";
 		exit (1);
 	}
-	// cout << " \n** IMPORTANT: MAKE SURE THE INFORMATION BELOW IS CORRECT **\n";
-	// cout << " catalog location: \t" << catalog_path << endl;
-	// cout << " tpch files dir: \t" << tpch_dir << endl;
-	// cout << " heap files dir: \t" << dbfile_dir << endl;
-	// cout << " \n\n";
+	cout << " \n** IMPORTANT: MAKE SURE THE INFORMATION BELOW IS CORRECT **\n";
+	cout << " catalog location: \t" << catalog_path << endl;
+	cout << " tpch files dir: \t" << tpch_dir << endl;
+	cout << " heap files dir: \t" << dbfile_dir << endl;
+	cout << " \n\n";
 
 	s = new relation (supplier, new Schema (catalog_path, supplier), dbfile_dir);
 	p = new relation (part, new Schema (catalog_path, part), dbfile_dir);

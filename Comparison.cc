@@ -1,4 +1,3 @@
-#include <cstring>
 #include <stdio.h>
 #include <iostream>
 #include <stdlib.h>
@@ -105,58 +104,17 @@ OrderMaker :: OrderMaker(Schema *schema) {
 
 
 void OrderMaker :: Print () {
-	printf("NumAtts = %5d\n", numAtts);
-	for (int i = 0; i < numAtts; i++)
-	{
-		printf("%3d: %5d ", i, whichAtts[i]);
-		if (whichTypes[i] == Int)
-			printf("Int\n");
-		else if (whichTypes[i] == Double)
-			printf("Double\n");
-		else
-			printf("String\n");
-	}
-}
-
-
-string OrderMaker::ToString() {
-    string res;
-    res += to_string(numAtts);
-    for (int i = 0; i < numAtts; i++) {
-        res += "," + to_string(whichAtts[i]) + ":" + to_string(whichTypes[i]);
-    }
-    return res;
-}
-
-void OrderMaker::FromString(string src) {
-    string data;
-
-    int index = 0;
-    for (; index < src.size(); index++) {
-        if (src[index] == ',') {
-            index++;
-            break;
-        } else {
-            data += src[index];
-        }
-    }
-
-    this->numAtts = stoi(data);
-
-    data = "";
-    int attrIndex = 0;
-    for (; index < src.size(); index++) {
-        if (src[index] == ':') {
-            whichAtts[attrIndex] = stoi(data);
-            data = "";
-        } else if (src[index] == ',') {
-            whichTypes[attrIndex++] = Type(stoi(data));
-            data = "";
-        } else {
-            data += src[index];
-        }
-    }
-    whichTypes[attrIndex] = Type(stoi(data));
+	// printf("NumAtts = %5d\n", numAtts);
+	// for (int i = 0; i < numAtts; i++)
+	// {
+	// 	printf("%3d: %5d ", i, whichAtts[i]);
+	// 	if (whichTypes[i] == Int)
+	// 		printf("Int\n");
+	// 	else if (whichTypes[i] == Double)
+	// 		printf("Double\n");
+	// 	else
+	// 		printf("String\n");
+	// }
 }
 
 
@@ -184,7 +142,7 @@ int CNF :: GetSortOrders (OrderMaker &left, OrderMaker &right) {
 		// now verify that it operates over atts from both tables
 		if (!((orList[i][0].operand1 == Left && orList[i][0].operand2 == Right) ||
 		      (orList[i][0].operand2 == Left && orList[i][0].operand1 == Right))) {
-			// continue;		
+			//continue;		
 		}
 
 		// since we are here, we have found a join attribute!!!
@@ -216,7 +174,6 @@ int CNF :: GetSortOrders (OrderMaker &left, OrderMaker &right) {
 	}
 	
 	return left.numAtts;
-
 }
 
 

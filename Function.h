@@ -13,8 +13,8 @@ enum ArithOp {PushInt, PushDouble, ToDouble, ToDouble2Down,
 struct Arithmatic {
 
 	ArithOp myOp;
-	int recInput;
-	void *litInput;	
+	int recInput; // index in Record
+	void *litInput;
 };
 
 class Function {
@@ -41,9 +41,6 @@ public:
 
 	// prints out the function to the screen
 	void Print ();
-
-	// prints out the function to the screen
-	void Print (Schema *schema);
 
 	// applies the function to the given record and returns the result
 	Type Apply (Record &toMe, int &intResult, double &doubleResult);

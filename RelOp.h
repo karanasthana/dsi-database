@@ -1,231 +1,144 @@
-// #ifndef REL_OP_H
-// #define REL_OP_H
+#ifndef REL_OP_H
+#define REL_OP_H
 
-// #include "Pipe.h"
-// #include "DBFile.h"
-// #include "Record.h"
-// #include "Function.h"
-
-// class RelationalOp {
-// protected:
-//     int runLength;
-//     pthread_t thread;
-
-// public:
-//     // Blocks the caller until the particular relational operator has completed
-//     void WaitUntilDone() const;
-
-//     // Tell us the amount of internal memory this operation can utilise
-//     void Use_n_Pages(int n);
-// };
-
-// struct SelectFileArgs {
-//     DBFile *inputFile;
-//     Pipe *outputPipe;
-//     CNF *selectionOp;
-//     Record *literal;
-// };
-
-// void *SelectFileExecute(void *args);
-
-// class SelectFile : public RelationalOp {
-// public:
-//     void Run(DBFile &inputFile, Pipe &outputPipe, CNF &selectionOp, Record &literal);
-// };
-
-// struct SelectPipeArgs {
-//     Pipe *inputPipe, *outputPipe;
-//     CNF *selectionOp;
-//     Record *literal;
-// };
-
-// void *SelectPipeExecute(void *args);
-
-// class SelectPipe : public RelationalOp {
-// public:
-//     void Run(Pipe &inputPipe, Pipe &outputPipe, CNF &selectionOp, Record &literal);
-// };
-
-// struct ProjectArgs {
-//     Pipe *inputPipe, *outputPipe;
-
-//     int *attrsToKeep;
-//     int inputAttrCount, outputAttrCount;
-// };
-
-// void *ProjectExecute(void *args);
-
-// class Project : public RelationalOp {
-// public:
-//     void Run(Pipe &inputPipe, Pipe &outputPipe, int *attrsToKeep, int inputAttrCount, int outputAttrCount);
-// };
-
-// struct JoinArgs {
-//     Pipe *inputPipeLeft, *inputPipeRight, *outputPipe;
-//     CNF *selectionOp;
-//     Record *literal;
-//     int runLength;
-// };
-
-// void *JoinExecute(void *args);
-// void PerformSortMergeJoin(Pipe *leftInputPipe, Pipe *rightInputPipe, Pipe *outputPipe,
-//                           OrderMaker *leftOrderMaker, OrderMaker *rightOrderMaker);
-// void PerformBlockNestedLoopsJoin(Pipe *leftInputPipe, Pipe *rightInputPipe, Pipe *outputPipe, int runLength);
-
-// class Join : public RelationalOp {
-// public:
-//     void Run(Pipe &inputPipeLeft, Pipe &inputPipeRight, Pipe &outputPipe, CNF &selectionOp, Record &literal);
-// };
-
-// struct DuplicateRemovalArgs {
-//     Pipe *inputPipe, *outputPipe;
-//     Schema *schema;
-// };
-
-// void *DuplicateRemovalExecute(void *args);
-
-// class DuplicateRemoval : public RelationalOp {
-// public:
-//     void Run(Pipe &inputPipe, Pipe &outputPipe, Schema &schema);
-// };
-
-// struct SumArgs {
-//     Pipe *inputPipe, *outputPipe;
-//     Function *function;
-// };
-
-// void *SumExecute(void *args);
-
-// class Sum : public RelationalOp {
-// public:
-//     void Run(Pipe &inputPipe, Pipe &outputPipe, Function &computeMe);
-// };
-
-// class GroupBy : public RelationalOp {
-// public:
-//     void Run(Pipe &inputPipe, Pipe &outputPipe, OrderMaker &groupAttrs, Function &computeMe);
-// };
-
-// class WriteOut : public RelationalOp {
-// public:
-//     void Run(Pipe &inputPipe, FILE *outputFile, Schema &schema);
-// };
-
-// #endif 
-
-#ifndef SQLIKE_RELATIONALOP_H
-#define SQLIKE_RELATIONALOP_H
-
-#include "DBFile.h"
-#include "Function.h"
 #include "Pipe.h"
+#include "DBFile.h"
 #include "Record.h"
-
-#include <iostream>
+#include "Function.h"
 
 class RelationalOp {
-protected:
-    int runLength;
-    pthread_t thread;
+	public:
+	// blocks the caller until the particular relational operator 
+	// has run to completion
+	virtual void WaitUntilDone () = 0;
 
-public:
-    // Blocks the caller until the particular relational operator has completed
-    void WaitUntilDone() const;
-
-    // Tell us the amount of internal memory this operation can utilise
-    void Use_n_Pages(int n);
+	// tell us how much internal memory the operation can use
+	virtual void Use_n_Pages (int n) = 0;
 };
 
-struct SelectFileArgs {
-    DBFile *inputFile;
-    Pipe *outputPipe;
-    CNF *selectionOp;
-    Record *literal;
+class SelectFile : public RelationalOp { 
+
+	private:
+	pthread_t worker;
+	// Record *buffer;
+
+	public:
+
+	void Run (DBFile &inputF, Pipe &outputP, CNF &cnfOp, Record &literal);
+	void WaitUntilDone ();
+	void Use_n_Pages (int n);
+
 };
-
-void *SelectFileExecute(void *args);
-
-class SelectFile : public RelationalOp {
-public:
-    void Run(DBFile &inputFile, Pipe &outputPipe, CNF &selectionOp, Record &literal);
-};
-
-struct SelectPipeArgs {
-    Pipe *inputPipe, *outputPipe;
-    CNF *selectionOp;
-    Record *literal;
-};
-
-void *SelectPipeExecute(void *args);
 
 class SelectPipe : public RelationalOp {
-public:
-    void Run(Pipe &inputPipe, Pipe &outputPipe, CNF &selectionOp, Record &literal);
+    private:
+        pthread_t worker;
+	public:
+	void Run (Pipe &inPipe, Pipe &outputP, CNF &cnfOp, Record &literal);
+	void WaitUntilDone ();
+	void Use_n_Pages (int n);
+};
+class Project : public RelationalOp { 
+	public:
+	void Run (Pipe &inPipe, Pipe &outputP, int *keepMe, int numAttsInput, int numAttsOutput);
+	void WaitUntilDone ();
+	void Use_n_Pages (int n);
+	private:
+	pthread_t workerThread;
 };
 
-struct ProjectArgs {
-    Pipe *inputPipe, *outputPipe;
+void* ProjectWorker (void* arg);
 
-    int *attrsToKeep;
-    int inputAttrCount, outputAttrCount;
+typedef struct {
+	Pipe *inPipe;
+	Pipe *outputP;
+	int *keepMe;
+	int numAttsInput;
+	int numAttsOutput;
+} ProjStruct;
+
+class Join : public RelationalOp { 
+	public:
+	void Run (Pipe &inPipeL, Pipe &inPipeR, Pipe &outputP, CNF &cnfOp, Record &literal);
+	void WaitUntilDone ();
+	void Use_n_Pages (int n);
+	private:
+	pthread_t workerThread;
+	int runLen;
 };
 
-void *ProjectExecute(void *args);
+typedef struct {
+	Pipe *inPipeL;
+	Pipe *inPipeR;
+	Pipe *outputP;
+	CNF *cnfOp;
+	Record *literal;
+	int runLen;
+} JoinArg;
 
-class Project : public RelationalOp {
-public:
-    void Run(Pipe &inputPipe, Pipe &outputPipe, int *attrsToKeep, int inputAttrCount, int outputAttrCount);
-};
+void* JoinWorker (void* arg);
 
-struct JoinArgs {
-    Pipe *inputPipeLeft, *inputPipeRight, *outputPipe;
-    CNF *selectionOp;
-    Record *literal;
-    int runLength;
-};
+void JoinWorker_AddMergedRecord(Record* leftRecord, Record* rightRecord, Pipe* pipe);
 
-void *JoinExecute(void *args);
-void PerformSortMergeJoin(Pipe *leftInputPipe, Pipe *rightInputPipe, Pipe *outputPipe,
-                          OrderMaker *leftOrderMaker, OrderMaker *rightOrderMaker);
-void PerformBlockNestedLoopsJoin(Pipe *leftInputPipe, Pipe *rightInputPipe, Pipe *outputPipe, int runLength);
+void JoinWorker_Merge(JoinArg* joinArg, OrderMaker* leftOrder, OrderMaker* rightOrder);
 
-class Join : public RelationalOp {
-public:
-    void Run(Pipe &inputPipeLeft, Pipe &inputPipeRight, Pipe &outputPipe, CNF &selectionOp, Record &literal);
-};
+void JoinWorker_BlockNested(JoinArg* joinArg);
 
-struct DuplicateRemovalArgs {
-    Pipe *inputPipe, *outputPipe;
-    Schema *schema;
-};
-
-void *DuplicateRemovalExecute(void *args);
 
 class DuplicateRemoval : public RelationalOp {
-public:
-    void Run(Pipe &inputPipe, Pipe &outputPipe, Schema &schema);
+	public:
+	void Run (Pipe &inPipe, Pipe &outputP, Schema &mySchema);
+	void WaitUntilDone ();
+	void Use_n_Pages (int n);
+	private:
+	pthread_t workerThread;
+	int runLen;
 };
 
-struct SumArgs {
-    Pipe *inputPipe, *outputPipe;
-    Function *function;
-};
+void* DuplicateRemovalWorker (void* arg);
 
-void *SumExecute(void *args);
+typedef struct {
+	Pipe *inPipe;
+	Pipe *outputP;
+	OrderMaker *order;
+	int runLen;
+} DuplicateRemovalArg;
+
 
 class Sum : public RelationalOp {
-public:
-    void Run(Pipe &inputPipe, Pipe &outputPipe, Function &computeMe);
+    private:
+        pthread_t worker;
+	public:
+	void Run (Pipe &inPipe, Pipe &outputP, Function &computeMe);
+	void WaitUntilDone ();
+	void Use_n_Pages (int n);
 };
-
 class GroupBy : public RelationalOp {
-public:
-    void Run(Pipe &inputPipe, Pipe &outputPipe, OrderMaker &groupAttrs, Function &computeMe);
+    private:
+        pthread_t worker;
+
+	public:
+    int use_n_pages = 16;
+	void Run (Pipe &inPipe, Pipe &outputP, OrderMaker &groupAtts, Function &computeMe);
+	void WaitUntilDone ();
+	void Use_n_Pages (int n);
 };
 
 class WriteOut : public RelationalOp {
-public:
-    void Run(Pipe &inputPipe, FILE *outputFile, Schema &schema);
+	public:
+	void Run (Pipe &inPipe, FILE *outFile, Schema &mySchema);
+	void WaitUntilDone ();
+	void Use_n_Pages (int n);
+	private:
+	pthread_t workerThread;
 };
 
-#endif //SQLIKE_RELATIONALOP_H
+void* WriteOutWorker (void* arg);
+
+typedef struct {
+	Pipe *inPipe;
+	FILE *outFile;
+	Schema *schema;
+} WriteOutArg;
+
+#endif

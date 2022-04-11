@@ -1,22 +1,20 @@
 #ifndef COMPARISON_H
 #define COMPARISON_H
 
-#include <string>
-
 #include "Record.h"
 #include "Schema.h"
 #include "File.h"
 #include "Comparison.h"
 #include "ComparisonEngine.h"
-
+#include <stdlib.h>
 
 // This stores an individual comparison that is part of a CNF
 class Comparison {
 
 	friend class ComparisonEngine;
 	friend class CNF;
+    friend class DBFileSorted;
 
-public:
 	Target operand1;
 	int whichAtt1;
 	Target operand2;
@@ -24,8 +22,9 @@ public:
 
 	Type attType;
 
-
 	CompOperator op;
+
+public:
 
 	Comparison();
 
@@ -45,13 +44,15 @@ class OrderMaker {
 	friend class ComparisonEngine;
 	friend class CNF;
 
-
 public:
+
+	int numAtts;
+
 	int whichAtts[MAX_ANDS];
 	Type whichTypes[MAX_ANDS];
 
 	
-	int numAtts;
+
 	// creates an empty OrdermMaker
 	OrderMaker();
 
@@ -61,12 +62,6 @@ public:
 
 	// print to the screen
 	void Print ();
-
-    // Converts this order-maker instance to string.
-    std::string ToString();
-
-    // Creates order-maker instance from string.
-    void FromString(std::string src);
 };
 
 class Record;
@@ -77,12 +72,14 @@ class Record;
 class CNF {
 
 	friend class ComparisonEngine;
+    friend class DBFileSorted;
 
-
-public:
 	Comparison orList[MAX_ANDS][MAX_ORS];
+	
 	int orLens[MAX_ANDS];
 	int numAnds;
+
+public:
 
 	// this returns an instance of the OrderMaker class that
 	// allows the CNF to be implemented using a sort-based

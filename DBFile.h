@@ -1,36 +1,51 @@
 #ifndef DBFILE_H
 #define DBFILE_H
 
-#include "Comparison.h"
-#include "GenericDBFile.h"
+#include "TwoWayList.h"
 #include "Record.h"
 #include "Schema.h"
+#include "File.h"
+#include "Comparison.h"
+#include "ComparisonEngine.h"
+#include "DBFileGeneric.h"
 
-class DBFile
-{
-private:
-    GenericDBFile *file;
+typedef enum {heap, sorted, tree} fType;
+typedef struct {OrderMaker *myOrder; int runLength;} SortedInfo;
+// stub DBFile header..replace it with your own DBFile.h 
 
+
+class DBFileGeneric{
 public:
-    DBFile();
+    virtual int Create (char *fpath, fType f_type,  void *startup) = 0;
+    virtual int Open (char *fpath) = 0;
+    virtual int Close () = 0;
 
-    ~DBFile();
+    virtual void Load (Schema &myschema, char *loadpath) = 0;
 
-    int Create(const char *filePath, typeOfFile type, void *startUp);
-
-    int Open(const char *filePath);
-
-    int Close();
-
-    void Load(Schema &schema, const char *loadPath);
-
-    void MoveFirst();
-
-    void Add(Record &addMe);
-
-    int GetNext(Record &fetchMe);
-
-    int GetNext(Record &fetchMe, CNF &cnf, Record &literal);
+    virtual void MoveFirst () = 0;
+    virtual void Add (Record &addme) = 0;
+    virtual int GetNext (Record &fetchme) = 0;
+    virtual int GetNext (Record &fetchme, CNF &cnf, Record &literal) = 0;
 };
 
-#endif // DBFILE_H
+
+class DBFile {
+private:
+    DBFileGeneric* myInernalVar;
+
+public:
+	DBFile (); 
+
+	int Create (char *fpath, fType file_type, void *startup);
+	int Open (char *fpath);
+	int Close ();
+
+	void Load (Schema &myschema, char *loadpath);
+
+	void MoveFirst ();
+	void Add (Record &addme);
+	int GetNext (Record &fetchme);
+	int GetNext (Record &fetchme, CNF &cnf, Record &literal);
+
+};
+#endif

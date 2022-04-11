@@ -3,26 +3,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
-#include <fstream>
-#include <iterator>
-#include <sstream>
 
-int Schema :: Find (const char *attName) {
-	// cout << attName << " AND THE NUMATTS ARE - " << numAtts << '\n';
+int Schema :: Find (char *attName) {
+
 	for (int i = 0; i < numAtts; i++) {
-		// cout << myAtts[i].name << '\n';
 		if (!strcmp (attName, myAtts[i].name)) {
-			// cout << '\n' << '\n';
 			return i;
 		}
 	}
 
-	cout << '\n' << '\n';
 	// if we made it here, the attribute was not found
 	return -1;
 }
 
-Type Schema :: FindType (const char *attName) {
+Type Schema :: FindType (char *attName) {
 
 	for (int i = 0; i < numAtts; i++) {
 		if (!strcmp (attName, myAtts[i].name)) {
@@ -42,34 +36,31 @@ Attribute *Schema :: GetAtts () {
 	return myAtts;
 }
 
-Schema :: Schema (const char *fName, int numAttrs, Attribute *attrs) {
-    // //fileName = fileName;
-	// myAtts = new Attribute[numAttrs];
-    // for (int i = 0; i < numAttrs; i++) {
-    //     //Attribute attr;
-    //     myAtts[i].name = attrs[i].name;
-    //     myAtts[i].myType = attrs[i].myType;
-    //     //attrs.push_back(attr);
-    // }
-	// cout<<"Schema.cc line 51" << fName << '\n';
-	this->fileName = fName;
-	this->numAtts = numAttrs;
-	// cout<<"Schema.cc line 56 " << fileName << " and numAttrs is - " << numAttrs << " and numAttrs is - " << numAttrs << '\n';
-	this->myAtts = new Attribute[this->numAtts];
-    for (int i = 0; i < numAtts; i++) {
-		// cout<<"Schema.cc line 55 for i = " << i << '\n';
-        Attribute attr;
-		// cout<<"Schema.cc line 57 for i = " << i << " name->" << attrs[i].name << " type->" << attrs[i].myType << '\n';
-        attr.name = attrs[i].name;
-		// cout<<"Schema.cc line 59 for i = " << i << '\n';
-        attr.myType = attrs[i].myType;
-		// cout<<"Schema.cc line 61 for i = " << i << " and myType " << attrs[i].myType << " and name " << attrs[i].name << '\n';
-        this->myAtts[i] = attr;
-		// cout<<"Schema.cc line 63 for i = " << i << '\n';
-    }
+
+Schema :: Schema (char *fpath, int num_atts, Attribute *atts) {
+	fileName = strdup (fpath);
+	numAtts = num_atts;
+	myAtts = new Attribute[numAtts];
+	for (int i = 0; i < numAtts; i++ ) {
+		if (atts[i].myType == Int) {
+			myAtts[i].myType = Int;
+		}
+		else if (atts[i].myType == Double) {
+			myAtts[i].myType = Double;
+		}
+		else if (atts[i].myType == String) {
+			myAtts[i].myType = String;
+		} 
+		else {
+			cout << "Bad attribute type for " << atts[i].myType << "\n";
+			delete [] myAtts;
+			exit (1);
+		}
+		myAtts[i].name = strdup (atts[i].name);
+	}
 }
 
-Schema :: Schema (const char *fName, const char *relName) {
+Schema :: Schema (char *fName, char *relName) {
 
 	FILE *foo = fopen (fName, "r");
 	
@@ -129,7 +120,6 @@ Schema :: Schema (const char *fName, const char *relName) {
 			numAtts++;
 		}
 	}
-	// cout << "Line 131 " << numAtts << " and fName - " << fName << " and relName - " << relName << endl;
 
 	// now actually load up the schema
 	fclose (foo);

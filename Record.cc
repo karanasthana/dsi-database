@@ -18,11 +18,112 @@ Record :: ~Record () {
 
 }
 
-void Record::Clear() {
-    delete [] bits;
-    bits = nullptr;
-}
 
+int Record :: ComposeRecord (Schema *mySchema, const char *src) {
+
+	// this is temporary storage
+	char *space = new (std::nothrow) char[PAGE_SIZE];
+	if (space == NULL)
+	{
+		cout << "ERROR : Not enough memory. EXIT !!!\n";
+		exit(1);
+	}
+
+	char *recSpace = new (std::nothrow) char[PAGE_SIZE];
+	if (recSpace == NULL)
+	{
+		cout << "ERROR : Not enough memory. EXIT !!!\n";
+		exit(1);
+	}
+
+	// clear out the present record
+	if (bits != NULL) 
+		delete [] bits;
+	bits = NULL;
+
+	int n = mySchema->GetNumAtts();
+	Attribute *atts = mySchema->GetAtts();
+
+	// this is the current position (int bytes) in the binary
+	// representation of the record that we are dealing with
+	int currentPosInRec = sizeof (int) * (n + 1);
+
+	// loop through all of the attributes
+	int cursor = 0;
+	for (int i = 0; i < n; i++) {
+		
+		// first we suck in the next attribute value
+		int len = 0;
+		while (1) {
+			int nextChar = src[cursor++];
+			if (nextChar == '|')
+				break;
+			else if (nextChar == '\0') {
+				delete [] space;
+				delete [] recSpace;
+				return 0;
+			}
+
+			space[len] = nextChar;
+			len++;
+		}
+
+		// set up the pointer to the current attribute in the record
+		((int *) recSpace)[i + 1] = currentPosInRec;
+
+		// null terminate the string
+		space[len] = 0;
+		len++;
+
+		// then we convert the data to the correct binary representation
+		if (atts[i].myType == Int) {
+			*((int *) &(recSpace[currentPosInRec])) = atoi (space);	
+			currentPosInRec += sizeof (int);
+
+		} else if (atts[i].myType == Double) {
+
+			// make sure that we are starting at a double-aligned position;
+			// if not, then we put some extra space in there
+			while (currentPosInRec % sizeof(double) != 0) {
+				currentPosInRec += sizeof (int);
+				((int *) recSpace)[i + 1] = currentPosInRec;
+			}
+
+			*((double *) &(recSpace[currentPosInRec])) = atof (space);
+			currentPosInRec += sizeof (double);
+
+		} else if (atts[i].myType == String) {
+
+			// align things to the size of an integer if needed
+			if (len % sizeof (int) != 0) {
+				len += sizeof (int) - (len % sizeof (int));
+			}
+
+			strcpy (&(recSpace[currentPosInRec]), space); 
+			currentPosInRec += len;
+
+		} 
+		
+	}
+
+	// the last thing is to set up the pointer to just past the end of the reocrd
+	((int *) recSpace)[0] = currentPosInRec;
+
+	// and copy over the bits
+	bits = new (std::nothrow) char[currentPosInRec];
+	if (bits == NULL)
+	{
+		cout << "ERROR : Not enough memory. EXIT !!!\n";
+		exit(1);
+	}
+
+	memcpy (bits, recSpace, currentPosInRec);	
+
+	delete [] space;
+	delete [] recSpace;
+
+	return 1;
+}
 
 int Record :: SuckNextRecord (Schema *mySchema, FILE *textFile) {
 
@@ -178,103 +279,6 @@ void Record :: Copy (Record *copyMe) {
 
 }
 
-void Record::MemoryValidation(const char *arr) {
-    if (arr == nullptr) {
-        cout << "ERROR : Not enough memory. EXIT !!!\n";
-        exit(1);
-    }
-}
-
-
-int Record::ComposeRecord(Schema &schema, const char *src) {
-    // cout << "ComposeRecord - Line 190 " << endl;
-	// cout << "ComposeRecord - Line 191 " << src << endl;
-	char *attrVal = new (std::nothrow) char[PAGE_SIZE];
-    MemoryValidation(attrVal);
-	// cout << "ComposeRecord - Line 194" << endl;
-
-    char *rec = new (std::nothrow) char[PAGE_SIZE];
-    MemoryValidation(rec);
-	// cout << "ComposeRecord - Line 198" << endl;
-	// cout << "ComposeRecord - Line 199" << endl;
-
-    Clear();
-
-    Attribute* attrs = schema.GetAtts();
-    int size = schema.GetNumAtts();
-	// cout << "ComposeRecord - line 205" << size << '\n';
-
-    // current position (int bytes) in the binary representation of the record that we are dealing with
-    int currentPosInRec = sizeof(int) * (size + 1);
-	// cout << "ComposeRecord - line 209" << currentPosInRec << '\n';
-
-    // loop through all of the attributes
-    int cursor = 0;
-    for (int index = 0; index < size; index++) {
-        int len = 0;
-
-        // Read character by character, the record is pipe ('|') separated.
-        // e.g "0|ALGERIA|0| haggle. carefully final deposits detect slyly agai|"
-        while (true) {
-            int nextChar = src[cursor++];
-            if (nextChar == '|') break;
-            else if (nextChar == '\0') {
-                delete [] attrVal;
-                delete [] rec;
-                return 0;
-            }
-
-            attrVal[len] = (char) nextChar;
-            len++;
-        }
-
-        ((int*) rec)[index + 1] = currentPosInRec;
-
-        // Null terminate the string
-        attrVal[len] = 0;
-        len++;
-
-        // Convert the data to correct binary representation
-        if (attrs[index].myType == Int) {
-            *((int *) &(rec[currentPosInRec])) = atoi(attrVal);
-            currentPosInRec += sizeof(int);
-        }
-        else if (attrs[index].myType == Double) {
-            // align things to the size of an integer if needed
-            while (currentPosInRec % sizeof(double) != 0) {
-                currentPosInRec += sizeof(int);
-                ((int *) rec)[index + 1] = currentPosInRec;
-            }
-
-            *((double *) &(rec[currentPosInRec])) = atof(attrVal);
-            currentPosInRec += sizeof(double);
-        }
-        else if (attrs[index].myType == String) {
-            // align things to the size of an integer if needed
-            if (len % sizeof(int) != 0) {
-                len += sizeof(int) - (len % sizeof(int));
-            }
-
-            strcpy(&(rec[currentPosInRec]), attrVal);
-            currentPosInRec += len;
-        }
-    }
-
-    // Set up the pointer to just past the end of the record
-    ((int *) rec)[0] = currentPosInRec;
-
-    // Copy over the bits
-    bits = new (std::nothrow) char[currentPosInRec];
-    MemoryValidation(bits);
-
-    memcpy(bits, rec, currentPosInRec);
-
-    delete [] attrVal;
-    delete [] rec;
-
-    return 1;
-}
-
 void Record :: Project (int *attsToKeep, int numAttsToKeep, int numAttsNow) {
 	// first, figure out the size of the new record
 	int totSpace = sizeof (int) * (numAttsToKeep + 1);
@@ -420,16 +424,12 @@ void Record :: MergeRecords (Record *left, Record *right, int numAttsLeft, int n
 
 void Record :: Print (Schema *mySchema) {
 
-	// cout << "Record.cc Line 416" << '\n';
 	int n = mySchema->GetNumAtts();
-	// cout << "Record.cc Line 418 -> " << n << '\n';
 	Attribute *atts = mySchema->GetAtts();
-	// cout << "Record.cc Line 420 -> " << atts[0].name << '\n';
 
 	// loop through all of the attributes
 	for (int i = 0; i < n; i++) {
 
-		// cout << "Record.cc - Line 425" << '\n';
 		// print the attribute name
 		cout << atts[i].name << ": ";
 
@@ -449,12 +449,12 @@ void Record :: Print (Schema *mySchema) {
 		// then is a double
 		} else if (atts[i].myType == Double) {
 			double *myDouble = (double *) &(bits[pointer]);
-			cout << *myDouble;
+			cout << *myDouble;	
 
 		// then is a character string
 		} else if (atts[i].myType == String) {
 			char *myString = (char *) &(bits[pointer]);
-			cout << myString;
+			cout << myString;	
 		} 
 
 		cout << "]";
@@ -466,10 +466,6 @@ void Record :: Print (Schema *mySchema) {
 	}
 
 	cout << "\n";
-}
-
-int Record :: getRecordSize () {
-	return ((int *)this->bits)[0];
 }
 
 int Record :: GetAttrCount() {
