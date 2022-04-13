@@ -87,6 +87,8 @@ void Statistics::Read(char *fromWhere)
         if (word.compare("Relation:") == 0) {
             inputStream >> word;
             string curRelationName = word;
+            inputStream >> word;            
+            inputStream >> word;
             inputStream >> word;
             inputStream >> word;
             int numOfTuple = stoi(word);
@@ -101,13 +103,16 @@ void Statistics::Read(char *fromWhere)
             string curAttributeName = word;
             inputStream >> word;
             inputStream >> word;
+            inputStream >> word;
+            inputStream >> word;
+            inputStream >> word;
             int numOfDistinct = stoi(word);
             if (numOfDistinct == -1)
                 numOfDistinct = curRelation->numOfTuple;
             curRelation->attributeMap[curAttributeName] = numOfDistinct;
             
         }
-        else if (word.compare("EndOfRelation") == 0) {
+        else if (word.compare("End") == 0) {
             relationMap[curRelation->relationName] = curRelation;
         }
     }
@@ -124,7 +129,7 @@ void Statistics::Write(char *fromWhere)
         string curRelationName = kvPair->first;
         RelationInfo* curRelation = kvPair->second;
         int numOfTuple = curRelation->numOfTuple;
-        outputStream << "Relation: " << curRelationName << " numOfTuple: " << numOfTuple << "\n"; 
+        outputStream << "Relation: " << curRelationName << "\n"<<"Number Of Tuples: " << numOfTuple << "\n"; 
 
         //Write joined relation information
         // for (string rel : curRelation->joinedRelation) {
@@ -136,9 +141,9 @@ void Statistics::Write(char *fromWhere)
         for (kvPair2 = curAttributes->begin(); kvPair2 != curAttributes->end(); kvPair2++) {
             string curAttributeName = kvPair2->first;
             int numOfDistinct = kvPair2->second;
-            outputStream << "Attribute: " << curAttributeName << " numOfDistinct: " << numOfDistinct << "\n";
+            outputStream << "Attribute: " << curAttributeName << "\n"<< "Number Of Distinct Values: " << numOfDistinct << "\n";
         }
-        outputStream << "EndOfRelation" << "\n";
+        outputStream << "End" << "\n"<<"\n";
     }
     outputStream.close();
 }
