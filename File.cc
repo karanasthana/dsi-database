@@ -1,14 +1,13 @@
 #include "File.h"
 #include "TwoWayList.cc"
 
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
 #include <iostream>
-#include <stdlib.h>
-
 
 
 Page :: Page () {
@@ -110,6 +109,7 @@ void Page :: FromBinary (char *bits) {
 
 	// first read the number of records on the page
 	numRecs = ((int *) bits)[0];
+	//subi //cerr << " numRecs in page " << numRecs << endl;
 
 	// sanity check
 	if (numRecs > 1000000 || numRecs < 0) {
@@ -156,14 +156,6 @@ void Page :: FromBinary (char *bits) {
 	delete temp;
 }
 
-int Page :: getCurrentPageSize () {
-	return this->curSizeInBytes;
-}
-
-int Page :: GetNumberOfRecs() {
-	return numRecs;
-}
-
 File :: File () {
 }
 
@@ -175,6 +167,7 @@ void File :: GetPage (Page *putItHere, off_t whichPage) {
 
 	// this is because the first page has no data
 	whichPage++;
+	//subi// cerr << "get_pg " << whichPage << " file_sz " << curLength << endl;
 
 	if (whichPage >= curLength) {
 		cerr << "whichPage " << whichPage << " length " << curLength << endl;
@@ -205,22 +198,14 @@ void File :: AddPage (Page *addMe, off_t whichPage) {
 
 	// if we are trying to add past the end of the file, then
 	// zero all of the pages out
-	//cout << endl << endl << "Inside Add Page function now!" << endl << endl;
-	//cout << "which page ? " << whichPage << endl;
-	//cout << "cur length ? " << curLength << endl;
 	if (whichPage >= curLength) {
 		
 		// do the zeroing
-		//cout << "going inside the for loop with curLength " << curLength << "whichPage" << whichPage << endl;
-		//cout << "Page Size " << PAGE_SIZE << endl;
-		//cout << "SEEK_SET " << SEEK_SET << endl;
 		for (off_t i = curLength; i < whichPage; i++) {
 			int foo = 0;
 			lseek (myFilDes, PAGE_SIZE * i, SEEK_SET);
 			write (myFilDes, &foo, sizeof (int));
 		}
-
-		//cout << "got out of the for loop " << endl;
 
 		// set the size
 		curLength = whichPage + 1;	
@@ -244,7 +229,7 @@ void File :: AddPage (Page *addMe, off_t whichPage) {
 }
 
 
-void File :: Open (int fileLen, const char *fName) {
+void File :: Open (int fileLen, char *fName) {
 
 	// figure out the flags for the system open call
         int mode;

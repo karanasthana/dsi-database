@@ -1,121 +1,147 @@
-#include <iostream>
-#include <ostream>
-#include <string>
-#include <cstring>
-#include <fstream>
-
+#include "TwoWayList.h"
+#include "Record.h"
+#include "Schema.h"
+#include "File.h"
+#include "Comparison.h"
+#include "ComparisonEngine.h"
 #include "DBFile.h"
-#include "Heap.h"
-#include "Sorted.h"
+#include "DBFileHeap.h"
+#include "DBFileSorted.h"
+#include "DBFileTree.h"
+#include "Defs.h"
+#include <iostream>
+#include <fstream>
+// stub file .. replace it with your own DBFile.cc
 
-using namespace std;
+DBFile::DBFile () {
 
-DBFile::DBFile()
-{
-    file = nullptr;
 }
 
-DBFile::~DBFile()
-{
-    delete file;
-}
-
-int DBFile::Create(const char *filePath, typeOfFile type, void *startUp)
-{
-    if (filePath == nullptr || type < heap || type > tree)
-        return 0;
-
-    if (type == heap)
-    {
-        file = new Heap();
+int DBFile::Create (char *f_path, fType f_type, void *startup) {
+//    cout<< "DBFile Create" << endl;
+    char f_meta_name[100];
+    sprintf (f_meta_name, "%s.meta", f_path);
+    cout<<"meta data in "<<f_meta_name<<endl;
+    ofstream f_meta;
+    f_meta.open(f_meta_name);
+    OrderMaker* orderMaker = nullptr;
+    int runLength = 0;
+    // write in file type
+    if(f_type == heap){
+        f_meta << "heap" << endl;
+        myInernalVar = new DBFileHeap();
     }
-    else if (type == sorted)
-    {
-        file = new Sorted();
+    else if(f_type==sorted){
+        f_meta << "sorted"<< endl;
+        myInernalVar = new DBFileSorted();
     }
-    else
-    {
-        cout << "File type! not valid" << endl;
-        exit(1);
+    else if(f_type==tree){
+        f_meta << "tree"<< endl;
+        myInernalVar = new DBFileTree();
     }
-
-    return file->Create(filePath, type, startUp);
-}
-
-int DBFile::Open(const char *filePath)
-{
-    if (filePath == nullptr)
-        return 0;
-
-    std::ifstream metadataFile;
-    string metadataFilePath(filePath);
-    metadataFilePath.append(".metadata");
-
-    metadataFile.open(metadataFilePath.c_str());
-
-    if (metadataFile.is_open())
-    {
-        string readLine;
-        getline(metadataFile, readLine);
-
-        if (strcmp(readLine.c_str(), FILE_TYPE_HEAP) == 0)
-        {
-            file = new Heap();
+    // write in orderMaker and runLength
+    if(startup!= nullptr) {
+        SortedInfo* sortedInfo = ((SortedInfo*)startup);
+        orderMaker = sortedInfo->myOrder;
+        runLength = sortedInfo->runLength;
+        f_meta << runLength << endl;
+        f_meta << orderMaker->numAtts << endl;
+        for (int i = 0; i < orderMaker->numAtts; i++) {
+            f_meta << orderMaker->whichAtts[i] << endl;
+            if (orderMaker->whichTypes[i] == Int)
+                f_meta << "Int" << endl;
+            else if (orderMaker->whichTypes[i] == Double)
+                f_meta << "Double" << endl;
+            else if(orderMaker->whichTypes[i] == String)
+                f_meta << "String" << endl;
         }
-        else if (strcmp(readLine.c_str(), FILE_TYPE_SORTED) == 0)
-        {
-            getline(metadataFile, readLine);
-            int runLen = stoi(readLine);
+        // store orderMaker and runLength into subclass
+        if(f_type == heap){
 
-            getline(metadataFile, readLine);
-            auto *orderMaker = new OrderMaker();
-            orderMaker->FromString(readLine);
-
-            file = new Sorted(orderMaker, runLen);
         }
-        else
-        {
-            cout << "File type value invalid \"" << readLine << "\" in metadata file." << endl;
-            exit(1);
+        else if(f_type==sorted){
+            ((DBFileSorted*)myInernalVar)->orderMaker = orderMaker;
+            ((DBFileSorted*)myInernalVar)->runLength = runLength;
         }
+        else if(f_type==tree){
 
-        metadataFile.close();
+        }
     }
-    else
-    {
-        cout << "Not able to create the metadata file " << metadataFilePath << endl;
-        return 0;
+    f_meta.close();
+    int res = myInernalVar->Create(f_path, f_type, startup);
+    return res;
+//    cout<< "end DBFile Create" << endl;
+}
+
+void DBFile::Load (Schema &f_schema, char *loadpath) {
+    myInernalVar->Load(f_schema, loadpath);
+}
+
+int DBFile::Open (char *f_path) {
+    OrderMaker* orderMaker = new OrderMaker();
+    char f_meta_name[100];
+    sprintf (f_meta_name, "%s.meta", f_path);
+    ifstream f_meta(f_meta_name);
+
+    string s;
+    getline(f_meta, s);
+    if(s.compare("heap")==0){
+        myInernalVar = new DBFileHeap();
     }
-
-    return file->Open(filePath);
+    else if(s.compare("sorted")==0){
+        myInernalVar = new DBFileSorted();
+        string temp;
+        getline(f_meta, temp);
+        int runLength = stoi(temp);
+        temp.clear();
+        getline(f_meta, temp);
+        orderMaker->numAtts = stoi(temp);
+        for(int i=0; i<orderMaker->numAtts; i++){
+            temp.clear();
+            getline(f_meta, temp);
+            orderMaker->whichAtts[i] = stoi(temp);
+            temp.clear();
+            getline(f_meta, temp);
+            if(temp.compare("Int")==0){
+                orderMaker->whichTypes[i] = Int;
+            }
+            else if(temp.compare("Double")==0){
+                orderMaker->whichTypes[i] = Double;
+            }
+            else if(temp.compare("String")==0){
+                orderMaker->whichTypes[i] = String;
+            }
+        }
+        ((DBFileSorted*)myInernalVar)->orderMaker = orderMaker;
+        ((DBFileSorted*)myInernalVar)->runLength = runLength;
+        orderMaker->Print();
+    }
+    else if(s.compare("tree")==0){
+        myInernalVar = new DBFileTree();
+    }
+    f_meta.close();
+    int res = myInernalVar->Open(f_path);
+    return res;
 }
 
-int DBFile::Close()
-{
-    return file->Close();
+void DBFile::MoveFirst () {
+    myInernalVar->MoveFirst();
 }
 
-void DBFile::Load(Schema &schema, const char *loadPath)
-{
-    file->Load(schema, loadPath);
+int DBFile::Close () {
+    int res = myInernalVar->Close();
+    delete myInernalVar;
+    return res;
 }
 
-void DBFile::MoveFirst()
-{
-    file->MoveFirst();
+void DBFile::Add (Record &rec) {
+    myInernalVar->Add(rec);
 }
 
-void DBFile::Add(Record &addMe)
-{
-    file->Add(addMe);
+int DBFile::GetNext (Record &fetchme) {
+    return myInernalVar->GetNext(fetchme);
 }
 
-int DBFile::GetNext(Record &fetchMe)
-{
-    return file->GetNext(fetchMe);
-}
-
-int DBFile::GetNext(Record &fetchMe, CNF &cnf, Record &literal)
-{
-    return file->GetNext(fetchMe, cnf, literal);
+int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
+    return myInernalVar->GetNext(fetchme, cnf, literal);
 }

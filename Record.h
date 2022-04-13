@@ -8,7 +8,6 @@
 
 #include "Defs.h"
 #include "ParseTree.h"
-#include "Record.h"
 #include "Schema.h"
 #include "File.h"
 #include "Comparison.h"
@@ -26,14 +25,15 @@ class Record {
 
 friend class ComparisonEngine;
 friend class Page;
+    friend class DBFileSorted;
 
 private:
-	char *bits;
 	char* GetBits ();
 	void SetBits (char *bits);
 	void CopyBits(char *bits, int b_len);
 
 public:
+	char *bits;
 	Record ();
 	~Record();
 
@@ -51,6 +51,8 @@ public:
 	// if there is an error and returns a 1 otherwise
 	int SuckNextRecord (Schema *mySchema, FILE *textFile);
 
+	int ComposeRecord (Schema *mySchema, const char *src);
+
 	// this projects away various attributes... 
 	// the array attsToKeep should be sorted, and lists all of the attributes
 	// that should still be in the record after Project is called.  numAttsNow
@@ -59,6 +61,8 @@ public:
 
 	// takes two input records and creates a new record by concatenating them;
 	// this is useful for a join operation
+	// attsToKeep[] = {0, 1, 2, 0, 2, 4} --gets 0,1,2 records from left 0, 2, 4 recs from right and startOfRight=3
+	// startOfRight is the index position in attsToKeep for the first att from right rec
 	void MergeRecords (Record *left, Record *right, int numAttsLeft, 
 		int numAttsRight, int *attsToKeep, int numAttsToKeep, int startOfRight);
 
@@ -66,9 +70,7 @@ public:
 	// that the schema also be given so that the record can be interpreted
 	void Print (Schema *mySchema);
 
-	// Returns the value of size of the relevant record. 
-	// Returns the value of ((int *)this->bits)[0]. The size of the record for the partiular bits
-	int getRecordSize();
+	int GetAttrCount();
 };
 
 #endif
