@@ -58,6 +58,8 @@ public:
 
 	void  Apply(struct AndList *parseTree, char *relNames[], int numToJoin);
 	double Estimate(struct AndList *parseTree, char **relNames, int numToJoin);
+    unordered_map<string, RelationInfo*> GetGroupNameToRelationMap();
+    int GetRelationAttNumCount(char *relName, char *attName);
 
 };
 

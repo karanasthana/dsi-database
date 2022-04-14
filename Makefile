@@ -2,17 +2,20 @@
 CC = g++ -std=c++11 -Wno-deprecated -w
 
 tag = -i
-gtest_tag = -std=c++11 -lgtest -lgtest_main
+gTest_tag = -std=c++11 -lgtest -lgtest_main
 
 ifdef linux
 tag = -n
 endif
 
-# gtest: Record.o Comparison.o Statistics.o ComparisonEngine.o Schema.o File.o DBFile.o DBFileGeneric.o DBFileTree.o BigQ.o Pipe.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o gtest.o DBFileSorted.o DBFileHeap.o RelOp.o Function.o
-# 	$(CC) -o gtest Record.o gtest.o Comparison.o Statistics.o ComparisonEngine.o Schema.o DBFileGeneric.o DBFileTree.o BigQ.o Pipe.o File.o DBFileSorted.o DBFileHeap.o DBFile.o y.tab.o yyfunc.tab.o lex.yy.o RelOp.o lex.yyfunc.o Function.o $(gtest_tag) -l pthread -lgtest
+gTest: Record.o Comparison.o Statistics.o ComparisonEngine.o Schema.o File.o DBFile.o DBFileGeneric.o DBFileTree.o BigQ.o Pipe.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o gTest.o DBFileSorted.o DBFileHeap.o RelOp.o Function.o
+	$(CC) -o gTest Record.o gTest.o Comparison.o Statistics.o ComparisonEngine.o Schema.o DBFileGeneric.o DBFileTree.o BigQ.o Pipe.o File.o DBFileSorted.o DBFileHeap.o DBFile.o y.tab.o yyfunc.tab.o lex.yy.o RelOp.o lex.yyfunc.o Function.o $(gTest_tag) -l pthread -lgtest
 
 test.out: Record.o Comparison.o Statistics.o ComparisonEngine.o Schema.o File.o DBFile.o DBFileGeneric.o DBFileHeap.o DBFileSorted.o DBFileTree.o Pipe.o BigQ.o RelOp.o Function.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test.o
 	$(CC) -o test.out Record.o Comparison.o Statistics.o ComparisonEngine.o Schema.o File.o DBFile.o DBFileGeneric.o DBFileHeap.o DBFileSorted.o DBFileTree.o Pipe.o BigQ.o RelOp.o Function.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test.o -lpthread
+
+# test.out: Record.o Comparison.o Statistics.o ComparisonEngine.o Schema.o File.o DBFile.o DBFileGeneric.o DBFileHeap.o DBFileSorted.o DBFileTree.o Pipe.o BigQ.o RelOp.o Function.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test.o
+# 	$(CC) -o test.out Record.o Comparison.o Statistics.o ComparisonEngine.o Schema.o File.o DBFile.o DBFileGeneric.o DBFileHeap.o DBFileSorted.o DBFileTree.o Pipe.o BigQ.o RelOp.o Function.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test.o -lpthread
 
 test_a3.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o DBFileGeneric.o DBFileHeap.o DBFileSorted.o DBFileTree.o Pipe.o BigQ.o RelOp.o Function.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test_a3.o
 	$(CC) -o test_a3.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o DBFileGeneric.o DBFileHeap.o DBFileSorted.o DBFileTree.o Pipe.o BigQ.o RelOp.o Function.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test_a3.o -lpthread
@@ -26,11 +29,11 @@ a2test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFi
 a1test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o Pipe.o y.tab.o lex.yy.o a1-test.o
 	$(CC) -o a1test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o Pipe.o y.tab.o lex.yy.o a1-test.o
 
-# gtest: Record.o Comparison.o ComparisonEngine.o Schema.o File.o Pipe.o y.tab.o lex.yy.o gtest.o  Function.o
-# 	$(CC) -o gtest.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o Pipe.o y.tab.o lex.yy.o gtest.o Function.o $(gtest_tag)
+# gTest: Record.o Comparison.o ComparisonEngine.o Schema.o File.o Pipe.o y.tab.o lex.yy.o gTest.o  Function.o
+# 	$(CC) -o gTest.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o Pipe.o y.tab.o lex.yy.o gTest.o Function.o $(gTest_tag)
 
-# gtest.o:
-# 	$(CC) -g -c gtest.cpp
+gTest.o:
+	$(CC) -g -c gTest.cc
 
 Statistics.o: Statistics.cc
 	$(CC) -g -c Statistics.cc

@@ -20,6 +20,15 @@ Statistics::Statistics(Statistics &copyMe)
         copyMe.relationMap[newRelation->relationName] = newRelation;
     }
 }
+unordered_map<string, RelationInfo*> Statistics::GetGroupNameToRelationMap() {
+    return this->relationMap;
+}
+
+int Statistics::GetRelationAttNumCount(char *relName, char *attName) {
+    string relationName = string(relName);
+    string attributeName = string(attName);
+    return this->relationMap[relationName]->attributeMap[attributeName];
+}
 
 Statistics::Statistics()
 {
