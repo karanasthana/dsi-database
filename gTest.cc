@@ -12,25 +12,25 @@
 
 #include <fstream>
 #include <gtest/gtest.h>
-#include <pthread.h>
+#include <pthread.h>\
 
-Attribute IA = {"int", Int};
-Attribute SA = {"string", String};
-Attribute DA = {"double", Double};
-
-// void GetMataDataFilePath(const char *fpath, char *metadataPath) {
-//     strcpy(metadataPath, fpath);
-//     strcat(metadataPath, ".metadata");
-// }
-
-TEST(DBFile, TestCreate0) {
-	Statistics s;
-	
-	s.AddRel("orders",1500000);
-	unordered_map<string, RelationInfo*> groupNameToRelationMap = s.GetGroupNameToRelationMap();
+TEST(Statistics, TestCreate0) {
+	Statistics stats;
+	stats.AddRel("orders",1500000);
+	unordered_map<string, RelationInfo*> groupNameToRelationMap = stats.GetGroupNameToRelationMap();
 	EXPECT_EQ(1, groupNameToRelationMap.size());
+
+    char *rels[4] = { "lineitem", "nation", "region", "parts" };
+    int vals[4] = { 150000, 15, 10, 1400 };
+
+    for (int i = 0; i < 4; i++) {
+        stats.AddRel(rels[i], vals[i]);
+    }
+
+    groupNameToRelationMap = stats.GetGroupNameToRelationMap();
+    EXPECT_EQ(5, groupNameToRelationMap.size());
 }
-TEST(DBFile, TestCreate1) {
+TEST(Statistics, TestCreate1) {
 	Statistics statistics;
     char *relName = "relation";
     char *attName = "attribute";
@@ -38,9 +38,11 @@ TEST(DBFile, TestCreate1) {
     int numTuples = 1000;
     int numDistincts = 25;
     statistics.AddRel(relName, numTuples);
-
-    // Call method AddRel.
+    statistics.AddRel("karan", 1000);
+    statistics.AddRel("prateek", 1001);
+    statistics.AddRel("dbi", 100);
     statistics.AddAtt(relName, attName, numDistincts);
+    statistics.AddAtt("dbi", "marks", 100);
 
 
 	EXPECT_EQ(numDistincts, statistics.GetRelationAttNumCount(relName, attName));
