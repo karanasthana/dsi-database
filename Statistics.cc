@@ -2,6 +2,9 @@
 #include <string>
 #include <string.h>
 
+Statistics::Statistics(){
+}
+
 Statistics::Statistics(Statistics &sc)
 {   
     for (unordered_map<string,Relation*>::iterator iter = relationMap.begin(); iter != relationMap.end(); iter++) {
@@ -17,26 +20,6 @@ Statistics::Statistics(Statistics &sc)
         sc.relationMap[nR->relationName] = nR;
     }
 }
-unordered_map<string, Relation*> Statistics::GetGroupNameToRelationMap() {
-    return this->relationMap;
-}
-
-int Statistics::GetRelationAttNumCount(char *relName, char *attName) {
-    string rName = string(relName);
-    string aName = string(attName);
-    return this->relationMap[rName]->attributeMap[aName];
-}
-
-Statistics::Statistics()
-{
-}
-
-Statistics::~Statistics()
-{
-}
-
-
-
 
 void Statistics::AddRel(char *relName, int numTuples)
 {
@@ -156,15 +139,24 @@ double Statistics::Estimate(struct AndList *tree, char **relationNames, int numT
 
         int subsetSize = numToJoin;
         int i=-1;
-        while(++i<subsetSize){
+        for(i=0;i<subsetSize;i++)
+        {
             subsetName = subsetName + "," + relationNames[i];
         }
+        // while(++i<subsetSize){
+        //     subsetName = subsetName + "," + relationNames[i];
+        // }
         i=-1;
-        while(++i<numToJoin)
+        for(i=0;i<numToJoin;i++)
         {
             string serRes = serializeJRelations(relationMap[relationNames[i]]->joinedRelation);
-            tval[serRes] = relationMap[relationNames[i]]->numOfTuple;
+            tval[serRes] = relationMap[relationNames[i]]->numOfTuple;        
         }
+        // while(++i<numToJoin)
+        // {
+        //     string serRes = serializeJRelations(relationMap[relationNames[i]]->joinedRelation);
+        //     tval[serRes] = relationMap[relationNames[i]]->numOfTuple;
+        // }
 
         res = 1000.0;
         while(tree!= nullptr){
@@ -192,12 +184,12 @@ void  Statistics::Apply(struct AndList *parseTree, char *relNames[], int numToJo
     long numTuples =(long)round(r);
     string subsetName="G";
     int i=numToJoin;
-    while(i-->0)
+    while(i-- > 0)
     {
         subsetName = subsetName + "," + string(relNames[i]);
     }
     i=numToJoin;
-    while(--i>=0)
+    while(--i >= 0)
     {
         relationMap[relNames[i]]->joinedRelation = getJRelations(subsetName);
         relationMap[relNames[i]]->numOfTuple = numTuples;
@@ -295,7 +287,6 @@ bool Statistics::attributeUtil(char *v,char *relationNames[], int num,unordered_
     return false;
 }
 
-
 double Statistics::estimateTuples(struct OrList *orList, unordered_map<string,long> &uniqueList)
 {
     unordered_map<string,double> selecMap;
@@ -330,6 +321,19 @@ double Statistics::estimateTuples(struct OrList *orList, unordered_map<string,lo
     }
     selectivity = (1.0-selectivity);
     return selectivity;
+}
+
+unordered_map<string, Relation*> Statistics::GetGroupNameToRelationMap() {
+    return this->relationMap;
+}
+
+int Statistics::GetRelationAttNumCount(char *relName, char *attName) {
+    string rName = string(relName);
+    string aName = string(attName);
+    return this->relationMap[rName]->attributeMap[aName];
+}
+
+Statistics::~Statistics(){
 }
 
 
