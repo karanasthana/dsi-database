@@ -12,9 +12,9 @@
 
 #include <fstream>
 #include <gtest/gtest.h>
-#include <pthread.h>\
+#include <pthread.h>
 
-TEST(Statistics, TestCreate0) {
+TEST(Statistics, TestGroupNameToRelationMapSize) {
 	Statistics stats;
 	stats.AddRel("orders",1500000);
 	unordered_map<string, Relation*> groupNameToRelationMap = stats.GetGroupNameToRelationMap();
@@ -30,7 +30,7 @@ TEST(Statistics, TestCreate0) {
     groupNameToRelationMap = stats.GetGroupNameToRelationMap();
     EXPECT_EQ(5, groupNameToRelationMap.size());
 }
-TEST(Statistics, TestCreate1) {
+TEST(Statistics, TestGetRelationAttNumCount) {
 	Statistics statistics;
     char *relName = "relation";
     char *attName = "attribute";
