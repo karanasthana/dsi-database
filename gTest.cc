@@ -17,7 +17,7 @@
 TEST(Statistics, TestCreate0) {
 	Statistics stats;
 	stats.AddRel("orders",1500000);
-	unordered_map<string, RelationInfo*> groupNameToRelationMap = stats.GetGroupNameToRelationMap();
+	unordered_map<string, Relation*> groupNameToRelationMap = stats.GetGroupNameToRelationMap();
 	EXPECT_EQ(1, groupNameToRelationMap.size());
 
     char *rels[4] = { "lineitem", "nation", "region", "parts" };

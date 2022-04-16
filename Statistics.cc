@@ -2,32 +2,29 @@
 #include <string>
 #include <string.h>
 
-Statistics::Statistics(Statistics &copyMe)
+Statistics::Statistics(Statistics &sc)
 {   
-    for (unordered_map<string,RelationInfo*>::iterator iter = relationMap.begin(); iter != relationMap.end(); iter++) {
-        RelationInfo* curRelation = iter->second;
-        //Copy number of tuple of relation
-        RelationInfo* newRelation = new RelationInfo(curRelation->relationName, curRelation->numOfTuple);
-        //Copy attribute map of realtion 
-        for (unordered_map<string, int>::iterator kvPair = curRelation->attributeMap.begin(); kvPair != curRelation->attributeMap.end(); kvPair++) {
-            newRelation->attributeMap[kvPair->first] = kvPair->second;
+    for (unordered_map<string,Relation*>::iterator iter = relationMap.begin(); iter != relationMap.end(); iter++) {
+        Relation* cR = iter->second;
+        Relation* nR = new Relation(cR->relationName, cR->numOfTuple);
+        for (unordered_map<string, int>::iterator kvPair = cR->attributeMap.begin(); kvPair != cR->attributeMap.end(); kvPair++) {
+            nR->attributeMap[kvPair->first] = kvPair->second;
         }
-        //Copy joined relations
-        for (string jr : curRelation->joinedRelation) {
-            if (jr.compare(curRelation->relationName) != 0)
-                newRelation->joinedRelation.insert(jr);
+        for (string jr : cR->joinedRelation) {
+            if (jr.compare(cR->relationName) != 0)
+                nR->joinedRelation.insert(jr);
         }
-        copyMe.relationMap[newRelation->relationName] = newRelation;
+        sc.relationMap[nR->relationName] = nR;
     }
 }
-unordered_map<string, RelationInfo*> Statistics::GetGroupNameToRelationMap() {
+unordered_map<string, Relation*> Statistics::GetGroupNameToRelationMap() {
     return this->relationMap;
 }
 
 int Statistics::GetRelationAttNumCount(char *relName, char *attName) {
-    string relationName = string(relName);
-    string attributeName = string(attName);
-    return this->relationMap[relationName]->attributeMap[attributeName];
+    string rName = string(relName);
+    string aName = string(attName);
+    return this->relationMap[rName]->attributeMap[aName];
 }
 
 Statistics::Statistics()
@@ -44,54 +41,48 @@ Statistics::~Statistics()
 void Statistics::AddRel(char *relName, int numTuples)
 {
     string sName = string(relName);
-    relationMap[sName] = new RelationInfo(sName, numTuples);
+    relationMap[sName] = new Relation(sName, numTuples);
 }
 
-void Statistics::AddAtt(char *relName, char *attName, int numDistincts)
+void Statistics::AddAtt(char *relName, char *attName, int distinctValues)
 {
-    string relationName = string(relName);
-    string attributeName = string(attName);
-    //If realtion does not exist
-    if (relationMap.count(relationName) == 0) {
+    string rName = string(relName);
+    string aName = string(attName);
+    if (relationMap.count(rName) == 0) {
         return;
     }
-    //Modify numDistincts if its value is -1
-    if (numDistincts == -1) {
-        numDistincts = relationMap[relationName]->numOfTuple;
+    if (distinctValues == -1) {
+        distinctValues = relationMap[rName]->numOfTuple;
     }
-    relationMap[relationName]->attributeMap[attributeName] = numDistincts;
+    relationMap[rName]->attributeMap[aName] = distinctValues;
 
 }
 
-void Statistics::CopyRel(char *oldRelName, char *newRelName)
+void Statistics::CopyRel(char *oName, char *nName)
 {
-    string sOldRelationName = string(oldRelName);
-    string sNewRelationName = string(newRelName);
-    //If old realtion does not exist
-    if (relationMap.count(sOldRelationName) == 0)
+    string oldRelName = string(oName);
+    string newRelName = string(nName);
+    if (relationMap.count(oldRelName) == 0)
         return;
-    RelationInfo* curRelation = relationMap[sOldRelationName];
-    //Copy number of tuple of relation
-    RelationInfo* newRelation = new RelationInfo(sNewRelationName, curRelation->numOfTuple);
-    //Copy attribute map of realtion 
-    for (unordered_map<string, int>::iterator kvPair = curRelation->attributeMap.begin(); kvPair != curRelation->attributeMap.end(); kvPair++) {
-        newRelation->attributeMap[sNewRelationName + "." + kvPair->first] = kvPair->second;
+    Relation* cR = relationMap[oldRelName];
+    Relation* nR = new Relation(newRelName, cR->numOfTuple);
+    for (unordered_map<string, int>::iterator kvPair = cR->attributeMap.begin(); kvPair != cR->attributeMap.end(); kvPair++) {
+        nR->attributeMap[newRelName + "." + kvPair->first] = kvPair->second;
     }
-    //Copy joined relations
-    for (string jr : curRelation->joinedRelation) {
-        if (jr.compare(sOldRelationName) != 0)
-            newRelation->joinedRelation.insert(jr);
+    for (string jr : cR->joinedRelation) {
+        if (jr.compare(oldRelName) != 0)
+            nR->joinedRelation.insert(jr);
     }
-    relationMap[sNewRelationName] = newRelation;
+    relationMap[newRelName] = nR;
 }
 
-void Statistics::Read(char *fromWhere)
+void Statistics::Read(char *from)
 {
     ifstream inputStream;
-    inputStream.open(fromWhere);
+    inputStream.open(from);
     string word;
 
-    RelationInfo* curRelation;
+    Relation* curRelation;
     while (inputStream >> word) {
         if (word.compare("Relation:") == 0) {
             inputStream >> word;
@@ -101,7 +92,7 @@ void Statistics::Read(char *fromWhere)
             inputStream >> word;
             inputStream >> word;
             int numOfTuple = stoi(word);
-            curRelation = new RelationInfo(curRelationName, numOfTuple);
+            curRelation = new Relation(curRelationName, numOfTuple);
         }
         else if (word.compare("JoinedRelation:") == 0) {
             inputStream >> word;
@@ -128,22 +119,16 @@ void Statistics::Read(char *fromWhere)
     inputStream.close();
 }
 
-void Statistics::Write(char *fromWhere)
+void Statistics::Write(char *from)
 {
     ofstream outputStream;
-    outputStream.open(fromWhere);
-    unordered_map<string, RelationInfo*>::iterator kvPair;
+    outputStream.open(from);
+    unordered_map<string, Relation*>::iterator kvPair;
     for (kvPair = relationMap.begin(); kvPair != relationMap.end(); kvPair++) {
-        //Write relation statistics info
         string curRelationName = kvPair->first;
-        RelationInfo* curRelation = kvPair->second;
+        Relation* curRelation = kvPair->second;
         int numOfTuple = curRelation->numOfTuple;
         outputStream << "Relation: " << curRelationName << "\n"<<"Number Of Tuples: " << numOfTuple << "\n"; 
-
-        //Write joined relation information
-        // for (string rel : curRelation->joinedRelation) {
-            // outputStream << "JoinedRelation: " << rel << "\n";
-        // }
 
         unordered_map<string, int>* curAttributes = &(curRelation->attributeMap);
         unordered_map<string, int>::iterator kvPair2;
@@ -164,7 +149,7 @@ double Statistics::Estimate(struct AndList *tree, char **relationNames, int numT
     double res;
     res = 1.0;
     unordered_map<string,long> uniqueList;
-    if(helpPartitionAndParseTree(tree,relationNames,numToJoin,uniqueList))
+    if(PartitionAndParse(tree,relationNames,numToJoin,uniqueList))
     {
         string subsetName="G";
         unordered_map<string,long> tval;
@@ -177,13 +162,13 @@ double Statistics::Estimate(struct AndList *tree, char **relationNames, int numT
         i=-1;
         while(++i<numToJoin)
         {
-            string serRes = serializationJoinedRelations(relationMap[relationNames[i]]->joinedRelation);
+            string serRes = serializeJRelations(relationMap[relationNames[i]]->joinedRelation);
             tval[serRes] = relationMap[relationNames[i]]->numOfTuple;
         }
 
         res = 1000.0;
         while(tree!= nullptr){
-            res= helpTuplesEstimate(tree->left,uniqueList) * res;
+            res= estimateTuples(tree->left,uniqueList) * res;
             tree=tree->rightAnd;
         }
         unordered_map<string,long>::iterator ti=tval.begin();
@@ -214,12 +199,12 @@ void  Statistics::Apply(struct AndList *parseTree, char *relNames[], int numToJo
     i=numToJoin;
     while(--i>=0)
     {
-        relationMap[relNames[i]]->joinedRelation = getJoinedRelations(subsetName);
+        relationMap[relNames[i]]->joinedRelation = getJRelations(subsetName);
         relationMap[relNames[i]]->numOfTuple = numTuples;
     }
 }
 
-set<string> getJoinedRelations(string subsetName) {
+set<string> getJRelations(string subsetName) {
     set<string> joinedRelation;
     subsetName = subsetName + ",";
     int index = 0;
@@ -235,7 +220,7 @@ set<string> getJoinedRelations(string subsetName) {
     return joinedRelation;
 }
 
-string serializationJoinedRelations(set<string> joinedRelation) {
+string serializeJRelations(set<string> joinedRelation) {
     if (joinedRelation.size() == 1)
         return *joinedRelation.begin();
     string res = "G";
@@ -244,7 +229,7 @@ string serializationJoinedRelations(set<string> joinedRelation) {
     return res;
 }
 
-bool Statistics::helpPartitionAndParseTree(struct AndList *tree, char *relationNames[], int sizeOfAttributesJoin,unordered_map<string,long> &uniqueList)
+bool Statistics::PartitionAndParse(struct AndList *tree, char *relationNames[], int sizeOfAttributesJoin,unordered_map<string,long> &uniqueList)
 {
     bool res;
     res = true;
@@ -254,11 +239,11 @@ bool Statistics::helpPartitionAndParseTree(struct AndList *tree, char *relationN
         while(!(orListTop==NULL || !res))
         {
             struct ComparisonOp *cmpOp = orListTop->left;
-            if(!(cmpOp->left->code!=NAME || cmpOp->code!=STRING || helpAttributes(cmpOp->left->value,relationNames,sizeOfAttributesJoin,uniqueList))) {
+            if(!(cmpOp->left->code!=NAME || cmpOp->code!=STRING || attributeUtil(cmpOp->left->value,relationNames,sizeOfAttributesJoin,uniqueList))) {
                 cout<<"\n"<< cmpOp->left->value<<" Does Not Exist";
                 res=false;
             }
-            if(!( cmpOp->right->code!=NAME || cmpOp->code!=STRING || helpAttributes(cmpOp->right->value,relationNames,sizeOfAttributesJoin,uniqueList))) {
+            if(!( cmpOp->right->code!=NAME || cmpOp->code!=STRING || attributeUtil(cmpOp->right->value,relationNames,sizeOfAttributesJoin,uniqueList))) {
                 res=false;
             }
             orListTop=orListTop->rightOr;
@@ -269,7 +254,7 @@ bool Statistics::helpPartitionAndParseTree(struct AndList *tree, char *relationN
     unordered_map<string,int> tbl;
     int i=0;
     while(i<sizeOfAttributesJoin){
-        string gn = serializationJoinedRelations(relationMap[relationNames[i]]->joinedRelation);
+        string gn = serializeJRelations(relationMap[relationNames[i]]->joinedRelation);
         if(tbl.find(gn)==tbl.end()) {
             tbl[gn] = relationMap[string(relationNames[i])]->joinedRelation.size() - 1;
         }
@@ -291,10 +276,10 @@ bool Statistics::helpPartitionAndParseTree(struct AndList *tree, char *relationN
     return res;
 }
 
-bool Statistics::helpAttributes(char *v,char *relationNames[], int numberOfJoinAttributes,unordered_map<string,long> &uniqueList)
+bool Statistics::attributeUtil(char *v,char *relationNames[], int num,unordered_map<string,long> &uniqueList)
 {
-    for(int i=0; i<numberOfJoinAttributes; i++){
-        unordered_map<string,RelationInfo*>::iterator itr;
+    for(int i=0; i<num; i++){
+        unordered_map<string,Relation*>::iterator itr;
         itr = relationMap.find(relationNames[i]);
         if(relationMap.end() == itr){
             return false;
@@ -311,7 +296,7 @@ bool Statistics::helpAttributes(char *v,char *relationNames[], int numberOfJoinA
 }
 
 
-double Statistics::helpTuplesEstimate(struct OrList *orList, unordered_map<string,long> &uniqueList)
+double Statistics::estimateTuples(struct OrList *orList, unordered_map<string,long> &uniqueList)
 {
     unordered_map<string,double> selecMap;
     while(!(orList==NULL && true))

@@ -16,7 +16,7 @@
 
 using namespace std;
 
-class RelationInfo{
+class Relation{
 
     
 public:
@@ -24,12 +24,12 @@ public:
     int numOfTuple;
     string relationName;
     set<string> joinedRelation;
-    RelationInfo(string relationName, int numOfTuple){
+    Relation(string relationName, int numOfTuple){
         this->numOfTuple = numOfTuple;
         this->relationName = relationName;
         joinedRelation.insert(relationName);
     }
-    ~RelationInfo(){
+    ~Relation(){
         attributeMap.clear();
         joinedRelation.clear();
     }
@@ -45,10 +45,10 @@ public:
 	Statistics(Statistics &copyMe);
 	~Statistics();
 
-    unordered_map<string, RelationInfo*> relationMap;
-    bool helpPartitionAndParseTree(struct AndList *parseTree, char *subsetNames[], int numToJoin, unordered_map<string,long> &uniqvallist);
-    bool helpAttributes(char *value,char *subsetNames[], int numToJoin,unordered_map<string,long> &uniqvallist);
-    double helpTuplesEstimate(struct OrList *orList, unordered_map<string,long> &uniqvallist);
+    unordered_map<string, Relation*> relationMap;
+    bool PartitionAndParse(struct AndList *parseTree, char *subsetNames[], int numToJoin, unordered_map<string,long> &uniqvallist);
+    bool attributeUtil(char *value,char *subsetNames[], int numToJoin,unordered_map<string,long> &uniqvallist);
+    double estimateTuples(struct OrList *orList, unordered_map<string,long> &uniqvallist);
     void AddRel(char *relName, int numTuples);
 	void AddAtt(char *relName, char *attName, int numDistincts);
 	void CopyRel(char *oldName, char *newName);
@@ -58,16 +58,13 @@ public:
 
 	void  Apply(struct AndList *parseTree, char *relNames[], int numToJoin);
 	double Estimate(struct AndList *parseTree, char **relNames, int numToJoin);
-    unordered_map<string, RelationInfo*> GetGroupNameToRelationMap();
+    unordered_map<string, Relation*> GetGroupNameToRelationMap();
     int GetRelationAttNumCount(char *relName, char *attName);
 
 };
 
-set<string> getJoinedRelations(string subsetName);
+set<string> getJRelations(string subsetName);
 
-string serializationJoinedRelations(set<string> joinedRelation);
-
-
-
+string serializeJRelations(set<string> joinedRelation);
 
 #endif
