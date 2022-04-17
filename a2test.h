@@ -11,11 +11,9 @@
 using namespace std;
 
 // make sure that the information below is correct
-
-char *catalog_path = "catalog"; 
-char *dbfile_dir = ""; 
-char *tpch_dir ="/cise/tmp/dbi_sp11/DATA/1G/"; 
-
+char *dbfile_dir = "/cise/homes/karanasthana/git/data/tpch-dbgen/Project1/P1/";
+char *tpch_dir ="/cise/homes/karanasthana/git/tpch-dbgen";
+char *catalog_path = "catalog";
 
 extern "C" {
 	int yyparse(void);   // defined in y.tab.c

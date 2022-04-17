@@ -1,40 +1,20 @@
-Relation: part
-Number Of Tuples: 21433
-Attribute: p_container
-Number Of Distinct Values: 40
-Attribute: p_partkey
-Number Of Distinct Values: 200000
-End
-
-Relation: lineitem
-Number Of Tuples: 21433
-Attribute: l_shipmode
-Number Of Distinct Values: 7
-Attribute: l_shipinstruct
-Number Of Distinct Values: 4
-Attribute: l_partkey
-Number Of Distinct Values: 200000
-End
-
-Relation: orders
-Number Of Tuples: 2000405
-Attribute: o_orderkey
-Number Of Distinct Values: 1500000
-Attribute: o_custkey
-Number Of Distinct Values: 150000
-End
-
-Relation: customer
-Number Of Tuples: 2000405
-Attribute: c_custkey
-Number Of Distinct Values: 150000
-Attribute: c_nationkey
-Number Of Distinct Values: 25
-End
-
-Relation: nation
-Number Of Tuples: 2000405
-Attribute: n_nationkey
-Number Of Distinct Values: 25
-End
-
+Relation: part numOfTuple: 21433
+Attribute: p_container numOfDistinct: 40
+Attribute: p_partkey numOfDistinct: 200000
+EndOfRelation
+Relation: lineitem numOfTuple: 21433
+Attribute: l_shipmode numOfDistinct: 7
+Attribute: l_shipinstruct numOfDistinct: 4
+Attribute: l_partkey numOfDistinct: 200000
+EndOfRelation
+Relation: orders numOfTuple: 2000405
+Attribute: o_orderkey numOfDistinct: 1500000
+Attribute: o_custkey numOfDistinct: 150000
+EndOfRelation
+Relation: customer numOfTuple: 2000405
+Attribute: c_custkey numOfDistinct: 150000
+Attribute: c_nationkey numOfDistinct: 25
+EndOfRelation
+Relation: nation numOfTuple: 2000405
+Attribute: n_nationkey numOfDistinct: 25
+EndOfRelation

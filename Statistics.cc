@@ -6,7 +6,7 @@ Statistics::Statistics(){
 }
 
 Statistics::Statistics(Statistics &sc)
-{   
+{
     for (unordered_map<string,Relation*>::iterator iter = relationMap.begin(); iter != relationMap.end(); iter++) {
         Relation* cR = iter->second;
         Relation* nR = new Relation(cR->relationName, cR->numOfTuple);

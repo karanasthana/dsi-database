@@ -87,6 +87,7 @@ void q0 (){
 	Statistics s;
         char *relName[] = {"supplier","partsupp"};
 
+	cout << "Karan" << endl;
 	
 	s.AddRel(relName[0],10000);
 	s.AddAtt(relName[0], "s_suppkey",10000);
@@ -124,6 +125,8 @@ void q1 (){
 
 	Statistics s;
         char *relName[] = {"lineitem"};
+
+	cout << "Karan" << endl;
 
 	s.AddRel(relName[0],6001215);
 	s.AddAtt(relName[0], "l_returnflag",3);
