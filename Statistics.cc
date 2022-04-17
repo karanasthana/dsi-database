@@ -7,17 +7,21 @@ Statistics::Statistics(){
 
 Statistics::Statistics(Statistics &sc)
 {
-    for (unordered_map<string,Relation*>::iterator iter = relationMap.begin(); iter != relationMap.end(); iter++) {
+    unordered_map<string,Relation*>::iterator iter = relationMap.begin();
+    while (iter != relationMap.end()) {
         Relation* cR = iter->second;
         Relation* nR = new Relation(cR->relationName, cR->numOfTuple);
-        for (unordered_map<string, int>::iterator kvPair = cR->attributeMap.begin(); kvPair != cR->attributeMap.end(); kvPair++) {
+        unordered_map<string, int>::iterator kvPair = cR->attributeMap.begin();
+        while (kvPair != cR->attributeMap.end()) {
             nR->attributeMap[kvPair->first] = kvPair->second;
+            kvPair++;
         }
         for (string jr : cR->joinedRelation) {
             if (jr.compare(cR->relationName) != 0)
                 nR->joinedRelation.insert(jr);
         }
         sc.relationMap[nR->relationName] = nR;
+        iter++;
     }
 }
 
@@ -38,7 +42,6 @@ void Statistics::AddAtt(char *relName, char *attName, int distinctValues)
         distinctValues = relationMap[rName]->numOfTuple;
     }
     relationMap[rName]->attributeMap[aName] = distinctValues;
-
 }
 
 void Statistics::CopyRel(char *oName, char *nName)
@@ -49,8 +52,10 @@ void Statistics::CopyRel(char *oName, char *nName)
         return;
     Relation* cR = relationMap[oldRelName];
     Relation* nR = new Relation(newRelName, cR->numOfTuple);
-    for (unordered_map<string, int>::iterator kvPair = cR->attributeMap.begin(); kvPair != cR->attributeMap.end(); kvPair++) {
+    unordered_map<string, int>::iterator kvPair = cR->attributeMap.begin();
+    while (kvPair != cR->attributeMap.end()) {
         nR->attributeMap[newRelName + "." + kvPair->first] = kvPair->second;
+        kvPair++;
     }
     for (string jr : cR->joinedRelation) {
         if (jr.compare(oldRelName) != 0)
@@ -61,45 +66,45 @@ void Statistics::CopyRel(char *oName, char *nName)
 
 void Statistics::Read(char *from)
 {
-    ifstream inputStream;
-    inputStream.open(from);
-    string word;
+    ifstream inputStrm;
+    inputStrm.open(from);
+    string token;
 
     Relation* curRelation;
-    while (inputStream >> word) {
-        if (word.compare("Relation:") == 0) {
-            inputStream >> word;
-            string curRelationName = word;
-            inputStream >> word;            
-            inputStream >> word;
-            inputStream >> word;
-            inputStream >> word;
-            int numOfTuple = stoi(word);
+    while (inputStrm >> token) {
+        if (token.compare("Relation:") == 0) {
+            inputStrm >> token;
+            string curRelationName = token;
+            inputStrm >> token;            
+            inputStrm >> token;
+            inputStrm >> token;
+            inputStrm >> token;
+            int numOfTuple = stoi(token);
             curRelation = new Relation(curRelationName, numOfTuple);
         }
-        else if (word.compare("JoinedRelation:") == 0) {
-            inputStream >> word;
-            curRelation->joinedRelation.insert(word);
+        else if (token.compare("JoinedRelation:") == 0) {
+            inputStrm >> token;
+            curRelation->joinedRelation.insert(token);
         }
-        else if (word.compare("Attribute:") == 0) {
-            inputStream >> word;
-            string curAttributeName = word;
-            inputStream >> word;
-            inputStream >> word;
-            inputStream >> word;
-            inputStream >> word;
-            inputStream >> word;
-            int numOfDistinct = stoi(word);
+        else if (token.compare("Attribute:") == 0) {
+            inputStrm >> token;
+            string curAttributeName = token;
+            inputStrm >> token;
+            inputStrm >> token;
+            inputStrm >> token;
+            inputStrm >> token;
+            inputStrm >> token;
+            int numOfDistinct = stoi(token);
             if (numOfDistinct == -1)
                 numOfDistinct = curRelation->numOfTuple;
             curRelation->attributeMap[curAttributeName] = numOfDistinct;
             
         }
-        else if (word.compare("End") == 0) {
+        else if (token.compare("End") == 0) {
             relationMap[curRelation->relationName] = curRelation;
         }
     }
-    inputStream.close();
+    inputStrm.close();
 }
 
 void Statistics::Write(char *from)
