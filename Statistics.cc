@@ -132,36 +132,25 @@ void Statistics::Write(char *from)
 
 
 
-double Statistics::Estimate(struct AndList *tree, char **relationNames, int numToJoin)
+double Statistics::Estimate(struct AndList *tree, char **namesRel, int numToJoin)
 {
     double res;
     res = 1.0;
     unordered_map<string,long> uniqueList;
-    if(PartitionAndParse(tree,relationNames,numToJoin,uniqueList))
-    {
+    if(PartitionAndParse(tree,namesRel,numToJoin,uniqueList)) {
         string subsetName="G";
         unordered_map<string,long> tval;
 
         int subsetSize = numToJoin;
-        int i=-1;
-        for(i=0;i<subsetSize;i++)
-        {
-            subsetName = subsetName + "," + relationNames[i];
+        int i = 0;
+        for(i=0;i<subsetSize;i++) {
+            subsetName = subsetName + "," + namesRel[i];
         }
-        // while(++i<subsetSize){
-        //     subsetName = subsetName + "," + relationNames[i];
-        // }
-        i=-1;
-        for(i=0;i<numToJoin;i++)
-        {
-            string serRes = serializeJRelations(relationMap[relationNames[i]]->joinedRelation);
-            tval[serRes] = relationMap[relationNames[i]]->numOfTuple;        
+        // i = 0;
+        for(i=0;i<numToJoin;i++) {
+            string serRes = serializeJRelations(relationMap[namesRel[i]]->joinedRelation);
+            tval[serRes] = relationMap[namesRel[i]]->numOfTuple;        
         }
-        // while(++i<numToJoin)
-        // {
-        //     string serRes = serializeJRelations(relationMap[relationNames[i]]->joinedRelation);
-        //     tval[serRes] = relationMap[relationNames[i]]->numOfTuple;
-        // }
 
         res = 1000.0;
         while(tree!= nullptr){
@@ -175,8 +164,7 @@ double Statistics::Estimate(struct AndList *tree, char **relationNames, int numT
             ti++;
         }
     }
-    else
-    {
+    else {
         return -1.0;
     }
     res = res/1000.0;
@@ -193,54 +181,53 @@ void  Statistics::Apply(struct AndList *parseTree, char *relNames[], int numToJo
     {
         subsetName = subsetName + "," + string(relNames[i]);
     }
-    i=numToJoin;
-    while(--i >= 0)
+    i = numToJoin;
+    while(i-- > 0)
     {
         relationMap[relNames[i]]->joinedRelation = getJRelations(subsetName);
         relationMap[relNames[i]]->numOfTuple = numTuples;
     }
 }
 
-set<string> getJRelations(string subsetName) {
+set<string> getJRelations(string subset) {
     set<string> joinedRelation;
-    subsetName = subsetName + ",";
+    subset = subset + ",";
     int index = 0;
-    int size = subsetName.size();
-    while (subsetName.size() > 0) {
-        index = subsetName.find(",");
-        string sub = subsetName.substr(0, index);
+    while (subset.size() > 0) {
+        index = subset.find(",");
+        string sub = subset.substr(0, index);
         if (sub.compare("G") != 0) {
             joinedRelation.insert(sub);
         }
-        subsetName.erase(0, index + 1);
+        subset.erase(0, index + 1);
     }
     return joinedRelation;
 }
 
-string serializeJRelations(set<string> joinedRelation) {
-    if (joinedRelation.size() == 1)
-        return *joinedRelation.begin();
+string serializeJRelations(set<string> relJoined) {
+    if (relJoined.size() == 1)
+        return *relJoined.begin();
     string res = "G";
-    for (string rel : joinedRelation)
+    for (string rel : relJoined)
         res = res + "," + rel;
     return res;
 }
 
-bool Statistics::PartitionAndParse(struct AndList *tree, char *relationNames[], int sizeOfAttributesJoin,unordered_map<string,long> &uniqueList)
+bool Statistics::PartitionAndParse(struct AndList *tree, char *namesRel[], int sizeOfAttributesJoin,unordered_map<string,long> &uniqueList)
 {
     bool res;
     res = true;
-    while(!(tree==NULL || !res)){
+    while(!(tree == NULL || !res)){
         struct OrList *orListTop;
         orListTop=tree->left;
-        while(!(orListTop==NULL || !res))
+        while(!(orListTop == NULL || !res))
         {
             struct ComparisonOp *cmpOp = orListTop->left;
-            if(!(cmpOp->left->code!=NAME || cmpOp->code!=STRING || attributeUtil(cmpOp->left->value,relationNames,sizeOfAttributesJoin,uniqueList))) {
-                cout<<"\n"<< cmpOp->left->value<<" Does Not Exist";
+            if(!(cmpOp->left->code!=NAME || cmpOp->code!=STRING || attributeUtil(cmpOp->left->value,namesRel,sizeOfAttributesJoin,uniqueList))) {
+                cout<<"\n"<< cmpOp->left->value<< " Does Not Exist";
                 res=false;
             }
-            if(!( cmpOp->right->code!=NAME || cmpOp->code!=STRING || attributeUtil(cmpOp->right->value,relationNames,sizeOfAttributesJoin,uniqueList))) {
+            if(!( cmpOp->right->code!=NAME || cmpOp->code!=STRING || attributeUtil(cmpOp->right->value,namesRel,sizeOfAttributesJoin,uniqueList))) {
                 res=false;
             }
             orListTop=orListTop->rightOr;
@@ -251,9 +238,9 @@ bool Statistics::PartitionAndParse(struct AndList *tree, char *relationNames[], 
     unordered_map<string,int> tbl;
     int i=0;
     while(i<sizeOfAttributesJoin){
-        string gn = serializeJRelations(relationMap[relationNames[i]]->joinedRelation);
+        string gn = serializeJRelations(relationMap[namesRel[i]]->joinedRelation);
         if(tbl.find(gn)==tbl.end()) {
-            tbl[gn] = relationMap[string(relationNames[i])]->joinedRelation.size() - 1;
+            tbl[gn] = relationMap[string(namesRel[i])]->joinedRelation.size() - 1;
         }
         else
             tbl[gn]--;
@@ -273,14 +260,15 @@ bool Statistics::PartitionAndParse(struct AndList *tree, char *relationNames[], 
     return res;
 }
 
-bool Statistics::attributeUtil(char *v,char *relationNames[], int num,unordered_map<string,long> &uniqueList)
+bool Statistics::attributeUtil(char *v,char *namesRel[], int num,unordered_map<string,long> &uniqueList)
 {
-    for(int i=0; i<num; i++){
+    int i = 0;
+    while(i < num) {
         unordered_map<string,Relation*>::iterator itr;
-        itr = relationMap.find(relationNames[i]);
-        if(relationMap.end() == itr){
+        itr = relationMap.find(namesRel[i]);
+        if (relationMap.end() == itr){
             return false;
-        }else {
+        } else {
             string relation = string(v);
             if(itr->second->attributeMap.end() != itr->second->attributeMap.find(relation))
             {
@@ -288,6 +276,7 @@ bool Statistics::attributeUtil(char *v,char *relationNames[], int num,unordered_
                 return true;
             }
         }
+        i++;
     }
     return false;
 }
@@ -295,24 +284,23 @@ bool Statistics::attributeUtil(char *v,char *relationNames[], int num,unordered_
 double Statistics::estimateTuples(struct OrList *orList, unordered_map<string,long> &uniqueList)
 {
     unordered_map<string,double> selecMap;
-    while(!(orList==NULL && true))
+    while(!(orList == NULL && true))
     {
         struct ComparisonOp *comp=orList->left;
         string key = string(comp->left->value);
         if(selecMap.end()==selecMap.find(key)) selecMap[key]=0.0;
-        if(!(comp->code != 1 && comp->code != 2)){
+        if(!(comp->code != 1 && comp->code != 2)) {
             selecMap[key] = selecMap[key]+1.0/3;
         }
-        else
-        {
+        else {
             string leftKeyVal = string(comp->left->value);
-            long max_val = uniqueList[leftKeyVal];
+            long maxValue = uniqueList[leftKeyVal];
             if(4==comp->right->code){
                 string rightKeyVal = string(comp->right->value);
-                if(uniqueList[rightKeyVal] > max_val)
-                    max_val = uniqueList[rightKeyVal];
+                if(uniqueList[rightKeyVal] > maxValue)
+                    maxValue = uniqueList[rightKeyVal];
             }
-            selecMap[key] = 1.0/max_val + selecMap[key] + 0;
+            selecMap[key] = 1.0/maxValue + selecMap[key] + 0;
         }
         orList=orList->rightOr;
     }
