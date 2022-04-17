@@ -24,7 +24,7 @@ public:
     int numOfTuple;
     string relationName;
     set<string> joinedRelation;
-    Relation(string relationName, int numOfTuple){
+    Relation(string relationName, int numOfTuple) {
         this->numOfTuple = numOfTuple;
         this->relationName = relationName;
         joinedRelation.insert(relationName);
