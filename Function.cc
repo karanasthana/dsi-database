@@ -361,4 +361,7 @@ Type Function :: Apply (Record &toMe, int &intResult, double &doubleResult) {
 	
 }
 
+bool Function::returnInt (){
+    return returnsInt==1;
+}
 

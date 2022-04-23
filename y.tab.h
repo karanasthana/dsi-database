@@ -49,35 +49,73 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    OR = 258,
-    AND = 259,
-    Name = 260,
+    Name = 258,
+    Float = 259,
+    Int = 260,
     String = 261,
-    Float = 262,
-    Int = 263
+    SELECT = 262,
+    GROUP = 263,
+    DISTINCT = 264,
+    BY = 265,
+    FROM = 266,
+    WHERE = 267,
+    SUM = 268,
+    AS = 269,
+    AND = 270,
+    OR = 271,
+    HEAP = 272,
+    INSERT = 273,
+    DROP = 274,
+    INTO = 275,
+    SET = 276,
+    OUTPUT = 277,
+    TABLE = 278,
+    CREATE = 279
   };
 #endif
 /* Tokens.  */
-#define OR 258
-#define AND 259
-#define Name 260
+#define Name 258
+#define Float 259
+#define Int 260
 #define String 261
-#define Float 262
-#define Int 263
+#define SELECT 262
+#define GROUP 263
+#define DISTINCT 264
+#define BY 265
+#define FROM 266
+#define WHERE 267
+#define SUM 268
+#define AS 269
+#define AND 270
+#define OR 271
+#define HEAP 272
+#define INSERT 273
+#define DROP 274
+#define INTO 275
+#define SET 276
+#define OUTPUT 277
+#define TABLE 278
+#define CREATE 279
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 20 "Parser.y"
+#line 36 "Parser.y"
 
- 	struct Operand *myOperand;
-	struct ComparisonOp *myComparison; 
-  	struct OrList *myOrList;
-  	struct AndList *myAndList;
+ 	struct FuncOperand *myOperand;
+	struct FuncOperator *myOperator; 
+	struct TableList *myTables;
+	struct ComparisonOp *myComparison;
+	struct Operand *myBoolOperand;
+	struct OrList *myOrList;
+	struct AndList *myAndList;
+	struct NameList *myNames;
+	struct AttrList *myAttrList;
 	char *actualChars;
+	char whichOne;
 
-#line 81 "y.tab.h"
+#line 119 "y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

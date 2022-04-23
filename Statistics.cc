@@ -77,8 +77,8 @@ void Statistics::Read(char *from)
             string curRelationName = token;
             inputStrm >> token;            
             inputStrm >> token;
-            inputStrm >> token;
-            inputStrm >> token;
+            // inputStrm >> token;
+            // inputStrm >> token;
             int numOfTuple = stoi(token);
             curRelation = new Relation(curRelationName, numOfTuple);
         }
@@ -92,15 +92,15 @@ void Statistics::Read(char *from)
             inputStrm >> token;
             inputStrm >> token;
             inputStrm >> token;
-            inputStrm >> token;
-            inputStrm >> token;
+            // inputStrm >> token;
+            // inputStrm >> token;
             int numOfDistinct = stoi(token);
             if (numOfDistinct == -1)
                 numOfDistinct = curRelation->numOfTuple;
             curRelation->attributeMap[curAttributeName] = numOfDistinct;
             
         }
-        else if (token.compare("End") == 0) {
+        else if (token.compare("EndOfRelation") == 0) {
             relationMap[curRelation->relationName] = curRelation;
         }
     }
@@ -116,16 +116,16 @@ void Statistics::Write(char *from)
         string curRelationName = kvPair->first;
         Relation* curRelation = kvPair->second;
         int numOfTuple = curRelation->numOfTuple;
-        outputStream << "Relation: " << curRelationName << "\n"<<"Number Of Tuples: " << numOfTuple << "\n"; 
+        outputStream << "Relation: " << curRelationName << " numOfTuple: " << numOfTuple << "\n";   
 
         unordered_map<string, int>* curAttributes = &(curRelation->attributeMap);
         unordered_map<string, int>::iterator kvPair2;
         for (kvPair2 = curAttributes->begin(); kvPair2 != curAttributes->end(); kvPair2++) {
             string curAttributeName = kvPair2->first;
             int numOfDistinct = kvPair2->second;
-            outputStream << "Attribute: " << curAttributeName << "\n"<< "Number Of Distinct Values: " << numOfDistinct << "\n";
+            outputStream << "Relation: " << curRelationName << " numOfTuple: " << numOfTuple << "\n"; 
         }
-        outputStream << "End" << "\n"<<"\n";
+        outputStream << "EndOfRelation" << "\n";
     }
     outputStream.close();
 }

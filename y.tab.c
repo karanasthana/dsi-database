@@ -79,11 +79,27 @@
 	extern "C" int yyparse();
 	extern "C" void yyerror(char *s);
   
-	// this is the final parse tree that is returned	
-	struct AndList *final;	
+	// these data structures hold the result of the parsing
+	struct FuncOperator *finalFunction; // the aggregate function (NULL if no agg)
+	struct TableList *tables; // the list of tables and aliases in the query
+	struct AndList *boolean; // the predicate in the WHERE clause
+	struct NameList *groupingAtts; // grouping atts (NULL if no grouping)
+	struct NameList *attsToSelect; // the set of attributes in the SELECT (NULL if no such atts)
+	int distinctAtts; // 1 if there is a DISTINCT in a non-aggregate query 
+	int distinctFunc;  // 1 if there is a DISTINCT in an aggregate query
+
+	char *fileToInsert;
+        char *tableName;
+
+	int queryType; // 1  SELECT, 2  CREATE, 3  DROP, 4  INSERT, 5  SET
+
+	char *outputMode;
 
 
-#line 87 "y.tab.c"
+	struct AttrList *attsToCreate;
+
+
+#line 103 "y.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -131,35 +147,73 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    OR = 258,
-    AND = 259,
-    Name = 260,
+    Name = 258,
+    Float = 259,
+    Int = 260,
     String = 261,
-    Float = 262,
-    Int = 263
+    SELECT = 262,
+    GROUP = 263,
+    DISTINCT = 264,
+    BY = 265,
+    FROM = 266,
+    WHERE = 267,
+    SUM = 268,
+    AS = 269,
+    AND = 270,
+    OR = 271,
+    HEAP = 272,
+    INSERT = 273,
+    DROP = 274,
+    INTO = 275,
+    SET = 276,
+    OUTPUT = 277,
+    TABLE = 278,
+    CREATE = 279
   };
 #endif
 /* Tokens.  */
-#define OR 258
-#define AND 259
-#define Name 260
+#define Name 258
+#define Float 259
+#define Int 260
 #define String 261
-#define Float 262
-#define Int 263
+#define SELECT 262
+#define GROUP 263
+#define DISTINCT 264
+#define BY 265
+#define FROM 266
+#define WHERE 267
+#define SUM 268
+#define AS 269
+#define AND 270
+#define OR 271
+#define HEAP 272
+#define INSERT 273
+#define DROP 274
+#define INTO 275
+#define SET 276
+#define OUTPUT 277
+#define TABLE 278
+#define CREATE 279
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 20 "Parser.y"
+#line 36 "Parser.y"
 
- 	struct Operand *myOperand;
-	struct ComparisonOp *myComparison; 
-  	struct OrList *myOrList;
-  	struct AndList *myAndList;
+ 	struct FuncOperand *myOperand;
+	struct FuncOperator *myOperator; 
+	struct TableList *myTables;
+	struct ComparisonOp *myComparison;
+	struct Operand *myBoolOperand;
+	struct OrList *myOrList;
+	struct AndList *myAndList;
+	struct NameList *myNames;
+	struct AttrList *myAttrList;
 	char *actualChars;
+	char whichOne;
 
-#line 163 "y.tab.c"
+#line 217 "y.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -476,21 +530,21 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  10
+#define YYFINAL  17
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   17
+#define YYLAST   80
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  14
+#define YYNTOKENS  35
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  6
+#define YYNNTS  15
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  14
+#define YYNRULES  44
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  21
+#define YYNSTATES  94
 
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   263
+#define YYMAXUTOK   279
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -506,9 +560,9 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       9,    10,     2,     2,     2,     2,     2,     2,     2,     2,
+      25,    26,    30,    29,    27,    28,     2,    31,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-      11,    13,    12,     2,     2,     2,     2,     2,     2,     2,
+      32,    34,    33,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -528,15 +582,19 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
-       5,     6,     7,     8
+       5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
+      15,    16,    17,    18,    19,    20,    21,    22,    23,    24
 };
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_int16 yyrline[] =
 {
-       0,    55,    55,    70,    80,    88,    97,   105,   113,   120,
-     127,   135,   143,   151,   159
+       0,    98,    98,   106,   114,   121,   128,   134,   140,   146,
+     152,   157,   164,   172,   185,   198,   204,   210,   217,   224,
+     232,   242,   255,   265,   271,   280,   291,   296,   301,   306,
+     312,   326,   335,   343,   352,   361,   368,   375,   383,   391,
+     399,   407,   419,   427,   435
 };
 #endif
 
@@ -545,9 +603,13 @@ static const yytype_uint8 yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "OR", "AND", "Name", "String", "Float",
-  "Int", "'('", "')'", "'<'", "'>'", "'='", "$accept", "AndList", "OrList",
-  "Condition", "Op", "Literal", YY_NULLPTR
+  "$end", "error", "$undefined", "Name", "Float", "Int", "String",
+  "SELECT", "GROUP", "DISTINCT", "BY", "FROM", "WHERE", "SUM", "AS", "AND",
+  "OR", "HEAP", "INSERT", "DROP", "INTO", "SET", "OUTPUT", "TABLE",
+  "CREATE", "'('", "')'", "','", "'-'", "'+'", "'*'", "'/'", "'<'", "'>'",
+  "'='", "$accept", "SQL", "WhatIWant", "NewAtts", "Function", "Atts",
+  "Tables", "CompoundExp", "Op", "AndList", "OrList", "Condition",
+  "BoolComp", "Literal", "SimpleExp", YY_NULLPTR
 };
 #endif
 
@@ -556,12 +618,14 @@ static const char *const yytname[] =
    (internal) symbol number NUM (which must be that of a token).  */
 static const yytype_int16 yytoknum[] =
 {
-       0,   256,   257,   258,   259,   260,   261,   262,   263,    40,
-      41,    60,    62,    61
+       0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
+     265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
+     275,   276,   277,   278,   279,    40,    41,    44,    45,    43,
+      42,    47,    60,    62,    61
 };
 # endif
 
-#define YYPACT_NINF (-8)
+#define YYPACT_NINF (-29)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -575,9 +639,16 @@ static const yytype_int16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      -2,    -5,     8,    -8,    -8,    -8,    -8,    -1,     7,    -7,
-      -8,     9,    -5,    -8,    -8,    -8,    -5,    -2,    -8,    -8,
-      -8
+       1,     8,     9,   -16,   -13,    -5,    26,   -29,    27,     3,
+      18,    10,    19,    12,    44,     7,    45,   -29,    19,    24,
+      -1,    47,    27,    48,    49,   -29,   -29,   -29,    28,    -1,
+     -29,   -29,   -29,    -1,    -1,    29,     5,    40,     4,    19,
+     -29,   -29,    53,    31,    32,   -29,   -29,   -29,   -29,   -29,
+     -29,    -1,    56,    35,    58,    59,    37,   -29,     5,   -29,
+     -29,    36,    57,    50,    39,    54,    -1,   -29,   -29,   -29,
+     -29,    41,    55,    11,    60,    66,    53,    61,   -29,    64,
+      36,   -29,   -29,   -29,    36,    27,   -29,   -29,   -29,    35,
+     -29,   -29,    19,   -29
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -585,21 +656,30 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     0,     0,    14,    11,    12,    13,     0,     5,     7,
-       1,     3,     0,     8,     9,    10,     0,     0,     4,     6,
-       2
+       0,     0,     0,     0,     0,     0,     0,    17,     0,     0,
+       0,    10,    11,     0,     0,     0,     0,     1,    12,     0,
+       0,     0,     0,     0,     0,     6,     7,     8,     0,     0,
+      44,    42,    43,     0,     0,     0,    24,     0,     0,     9,
+      18,     5,     0,     0,     0,    25,    15,    26,    27,    28,
+      29,     0,     0,     0,     0,     0,     0,    16,    23,    21,
+      19,     0,     2,     0,    13,     0,     0,    41,    39,    40,
+      38,     0,    33,     0,     0,     0,     0,     0,    22,    31,
+       0,    35,    36,    37,     0,     0,    20,    14,     4,     0,
+      32,    34,     3,    30
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -8,    -6,     0,    -8,    -8,     1
+     -29,   -29,   -29,    -4,   -29,    -8,   -29,   -28,    15,   -15,
+       0,   -29,   -29,    -9,   -29
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     2,     7,     8,    16,     9
+      -1,     6,    10,    56,    11,    12,    38,    35,    51,    62,
+      71,    72,    84,    73,    36
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -607,36 +687,63 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-       3,     4,     5,     6,    13,    14,    15,     1,    10,    11,
-      12,    20,    18,    17,     0,     0,     0,    19
+      18,    43,    30,    31,    32,    44,    45,    14,     1,    15,
+      26,     7,    19,    27,    39,    13,    53,     8,    16,     2,
+       3,     9,     4,    59,    33,     5,    17,    34,    20,    21,
+       7,    54,    24,    47,    48,    49,    50,    22,    78,    67,
+      68,    69,    70,    81,    82,    83,    23,    25,    28,    29,
+      37,    40,    41,    42,    52,    46,    55,    57,    58,    60,
+      61,    63,    64,    65,    75,    74,    76,    79,    77,    86,
+      85,    80,    87,    66,    93,    91,     0,    92,    88,    89,
+      90
 };
 
 static const yytype_int8 yycheck[] =
 {
-       5,     6,     7,     8,    11,    12,    13,     9,     0,    10,
-       3,    17,    12,     4,    -1,    -1,    -1,    16
+       8,    29,     3,     4,     5,    33,    34,    23,     7,    22,
+       3,     3,     9,     6,    22,     6,    12,     9,    23,    18,
+      19,    13,    21,    51,    25,    24,     0,    28,    25,    11,
+       3,    27,    20,    28,    29,    30,    31,    27,    66,     3,
+       4,     5,     6,    32,    33,    34,    27,     3,     3,    25,
+       3,     3,     3,    25,    14,    26,     3,    26,    26,     3,
+      25,     3,     3,    26,    14,     8,    27,    26,    14,     3,
+      10,    16,    76,    58,    89,    84,    -1,    85,    17,    15,
+      80
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     9,    15,     5,     6,     7,     8,    16,    17,    19,
-       0,    10,     3,    11,    12,    13,    18,     4,    16,    19,
-      15
+       0,     7,    18,    19,    21,    24,    36,     3,     9,    13,
+      37,    39,    40,     6,    23,    22,    23,     0,    40,     9,
+      25,    11,    27,    27,    20,     3,     3,     6,     3,    25,
+       3,     4,     5,    25,    28,    42,    49,     3,    41,    40,
+       3,     3,    25,    42,    42,    42,    26,    28,    29,    30,
+      31,    43,    14,    12,    27,     3,    38,    26,    26,    42,
+       3,    25,    44,     3,     3,    26,    43,     3,     4,     5,
+       6,    45,    46,    48,     8,    14,    27,    14,    42,    26,
+      16,    32,    33,    34,    47,    10,     3,    38,    17,    15,
+      45,    48,    40,    44
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    14,    15,    15,    16,    16,    17,    17,    18,    18,
-      18,    19,    19,    19,    19
+       0,    35,    36,    36,    36,    36,    36,    36,    36,    37,
+      37,    37,    37,    38,    38,    39,    39,    40,    40,    41,
+      41,    42,    42,    42,    42,    42,    43,    43,    43,    43,
+      44,    44,    45,    45,    46,    47,    47,    47,    48,    48,
+      48,    48,    49,    49,    49
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     5,     3,     3,     1,     3,     1,     1,     1,
+       0,     2,     6,     9,     8,     4,     3,     3,     3,     3,
+       1,     1,     2,     2,     4,     4,     5,     1,     3,     3,
+       5,     3,     5,     3,     1,     2,     1,     1,     1,     1,
+       5,     3,     3,     1,     3,     1,     1,     1,     1,     1,
        1,     1,     1,     1,     1
 };
 
@@ -1333,155 +1440,469 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 56 "Parser.y"
+#line 99 "Parser.y"
 {
-	// here we need to pre-pend the OrList to the AndList
-	// first we allocate space for this node
-	(yyval.myAndList) = (struct AndList *) malloc (sizeof (struct AndList));
-	final = (yyval.myAndList);
-
-	// hang the OrList off of the left
-	(yyval.myAndList)->left = (yyvsp[-3].myOrList);
-
-	// hang the AndList off of the right
-	(yyval.myAndList)->rightAnd = (yyvsp[0].myAndList);
-
+	tables = (yyvsp[-2].myTables);
+	boolean = (yyvsp[0].myAndList);	
+	groupingAtts = NULL;
+	queryType = 1;
 }
-#line 1351 "y.tab.c"
+#line 1451 "y.tab.c"
     break;
 
   case 3:
-#line 71 "Parser.y"
+#line 107 "Parser.y"
 {
-	// just return the OrList!
-	(yyval.myAndList) = (struct AndList *) malloc (sizeof (struct AndList));
-	final = (yyval.myAndList);
-	(yyval.myAndList)->left = (yyvsp[-1].myOrList);
-	(yyval.myAndList)->rightAnd = NULL;
+	tables = (yyvsp[-5].myTables);
+	boolean = (yyvsp[-3].myAndList);	
+	groupingAtts = (yyvsp[0].myNames);
+	queryType = 1;
 }
-#line 1363 "y.tab.c"
+#line 1462 "y.tab.c"
     break;
 
   case 4:
-#line 81 "Parser.y"
-{ 
-	// here we have to hang the condition off the left of the OrList
-	(yyval.myOrList) = (struct OrList *) malloc (sizeof (struct OrList));	
-	(yyval.myOrList)->left = (yyvsp[-2].myComparison);
-	(yyval.myOrList)->rightOr = (yyvsp[0].myOrList);
+#line 115 "Parser.y"
+{
+	tableName = (yyvsp[-5].actualChars);
+	attsToCreate = (yyvsp[-3].myAttrList);
+	queryType = 2;
 }
-#line 1374 "y.tab.c"
+#line 1472 "y.tab.c"
     break;
 
   case 5:
-#line 89 "Parser.y"
+#line 122 "Parser.y"
 {
-	// nothing to hang off of the right
-	(yyval.myOrList) = (struct OrList *) malloc (sizeof (struct OrList));
-	(yyval.myOrList)->left = (yyvsp[0].myComparison);
-	(yyval.myOrList)->rightOr = NULL;
+	fileToInsert = (yyvsp[-2].actualChars);
+	tableName = (yyvsp[0].actualChars);
+	queryType = 4;
 }
-#line 1385 "y.tab.c"
+#line 1482 "y.tab.c"
     break;
 
   case 6:
-#line 98 "Parser.y"
+#line 129 "Parser.y"
 {
-	// in this case we have a simple literal/variable comparison
-	(yyval.myComparison) = (yyvsp[-1].myComparison);
-	(yyval.myComparison)->left = (yyvsp[-2].myOperand);
-	(yyval.myComparison)->right = (yyvsp[0].myOperand);
+	tableName = (yyvsp[0].actualChars);
+	queryType = 3;
 }
-#line 1396 "y.tab.c"
+#line 1491 "y.tab.c"
     break;
 
   case 7:
-#line 106 "Parser.y"
+#line 135 "Parser.y"
 {
-	(yyval.myComparison) = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
-	(yyval.myComparison)->code = EQUALS;
-	(yyval.myComparison)->left = (yyvsp[0].myOperand);
-	(yyval.myComparison)->right = (yyvsp[0].myOperand);
+	queryType = 5;
+	outputMode = (yyvsp[0].actualChars);
 }
-#line 1407 "y.tab.c"
+#line 1500 "y.tab.c"
     break;
 
   case 8:
-#line 114 "Parser.y"
+#line 141 "Parser.y"
 {
-	// construct and send up the comparison
-	(yyval.myComparison) = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
-	(yyval.myComparison)->code = LESS_THAN;
+	queryType = 5;
+	outputMode = (yyvsp[0].actualChars);
 }
-#line 1417 "y.tab.c"
+#line 1509 "y.tab.c"
     break;
 
   case 9:
-#line 121 "Parser.y"
+#line 147 "Parser.y"
 {
-	// construct and send up the comparison
-	(yyval.myComparison) = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
-	(yyval.myComparison)->code = GREATER_THAN;
+	attsToSelect = (yyvsp[0].myNames);
+	distinctAtts = 0;
 }
-#line 1427 "y.tab.c"
+#line 1518 "y.tab.c"
     break;
 
   case 10:
-#line 128 "Parser.y"
+#line 153 "Parser.y"
 {
-	// construct and send up the comparison
-	(yyval.myComparison) = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
-	(yyval.myComparison)->code = EQUALS;
+	attsToSelect = NULL;
 }
-#line 1437 "y.tab.c"
+#line 1526 "y.tab.c"
     break;
 
   case 11:
-#line 136 "Parser.y"
+#line 158 "Parser.y"
 {
-	// construct and send up the operand containing the string
-	(yyval.myOperand) = (struct Operand *) malloc (sizeof (struct Operand));
-	(yyval.myOperand)->code = STRING;
-	(yyval.myOperand)->value = (yyvsp[0].actualChars);
+	distinctAtts = 0;
+	finalFunction = NULL;
+	attsToSelect = (yyvsp[0].myNames);
 }
-#line 1448 "y.tab.c"
+#line 1536 "y.tab.c"
     break;
 
   case 12:
-#line 144 "Parser.y"
+#line 165 "Parser.y"
 {
-	// construct and send up the operand containing the FP number
-	(yyval.myOperand) = (struct Operand *) malloc (sizeof (struct Operand));
-	(yyval.myOperand)->code = DOUBLE;
-	(yyval.myOperand)->value = (yyvsp[0].actualChars);
+	distinctAtts = 1;
+	finalFunction = NULL;
+	attsToSelect = (yyvsp[0].myNames);
+	finalFunction = NULL;
 }
-#line 1459 "y.tab.c"
+#line 1547 "y.tab.c"
     break;
 
   case 13:
-#line 152 "Parser.y"
+#line 173 "Parser.y"
 {
-	// construct and send up the operand containing the integer
-	(yyval.myOperand) = (struct Operand *) malloc (sizeof (struct Operand));
-	(yyval.myOperand)->code = INT;
-	(yyval.myOperand)->value = (yyvsp[0].actualChars);
+	(yyval.myAttrList) = (struct AttrList *) malloc (sizeof (struct AttrList));
+	(yyval.myAttrList)->name = (yyvsp[-1].actualChars);
+	if (strcmp ((yyvsp[0].actualChars), "INTEGER") == 0)
+		(yyval.myAttrList)->type = 0;
+	else if (strcmp ((yyvsp[0].actualChars), "DOUBLE") == 0)
+		(yyval.myAttrList)->type = 1;
+	else if (strcmp ((yyvsp[0].actualChars), "STRING") == 0)
+		(yyval.myAttrList)->type = 2;
+	(yyval.myAttrList)->next = NULL;
 }
-#line 1470 "y.tab.c"
+#line 1563 "y.tab.c"
     break;
 
   case 14:
-#line 160 "Parser.y"
+#line 186 "Parser.y"
 {
-	// construct and send up the operand containing the name 
-	(yyval.myOperand) = (struct Operand *) malloc (sizeof (struct Operand));
-	(yyval.myOperand)->code = NAME;
-	(yyval.myOperand)->value = (yyvsp[0].actualChars);
+	(yyval.myAttrList) = (struct AttrList *) malloc (sizeof (struct AttrList));
+	(yyval.myAttrList)->name = (yyvsp[-3].actualChars);
+	if(strcmp((yyvsp[-2].actualChars), "INTEGER") == 0)
+		(yyval.myAttrList)->type = 0;
+	else if(strcmp((yyvsp[-2].actualChars), "DOUBLE") == 0)
+		(yyval.myAttrList)->type = 1;
+	else if(strcmp((yyvsp[-2].actualChars), "STRING") == 0)
+		(yyval.myAttrList)->type = 2;
+	(yyval.myAttrList)->next = (yyvsp[0].myAttrList);
 }
-#line 1481 "y.tab.c"
+#line 1579 "y.tab.c"
+    break;
+
+  case 15:
+#line 199 "Parser.y"
+{
+	distinctFunc = 0;
+	finalFunction = (yyvsp[-1].myOperator);
+}
+#line 1588 "y.tab.c"
+    break;
+
+  case 16:
+#line 205 "Parser.y"
+{
+	distinctFunc = 1;
+	finalFunction = (yyvsp[-1].myOperator);
+}
+#line 1597 "y.tab.c"
+    break;
+
+  case 17:
+#line 211 "Parser.y"
+{
+	(yyval.myNames) = (struct NameList *) malloc (sizeof (struct NameList));
+	(yyval.myNames)->name = (yyvsp[0].actualChars);
+	(yyval.myNames)->next = NULL;
+}
+#line 1607 "y.tab.c"
+    break;
+
+  case 18:
+#line 218 "Parser.y"
+{
+	(yyval.myNames) = (struct NameList *) malloc (sizeof (struct NameList));
+	(yyval.myNames)->name = (yyvsp[0].actualChars);
+	(yyval.myNames)->next = (yyvsp[-2].myNames);
+}
+#line 1617 "y.tab.c"
+    break;
+
+  case 19:
+#line 225 "Parser.y"
+{
+	(yyval.myTables) = (struct TableList *) malloc (sizeof (struct TableList));
+	(yyval.myTables)->tableName = (yyvsp[-2].actualChars);
+	(yyval.myTables)->aliasAs = (yyvsp[0].actualChars);
+	(yyval.myTables)->next = NULL;
+}
+#line 1628 "y.tab.c"
+    break;
+
+  case 20:
+#line 233 "Parser.y"
+{
+	(yyval.myTables) = (struct TableList *) malloc (sizeof (struct TableList));
+	(yyval.myTables)->tableName = (yyvsp[-2].actualChars);
+	(yyval.myTables)->aliasAs = (yyvsp[0].actualChars);
+	(yyval.myTables)->next = (yyvsp[-4].myTables);
+}
+#line 1639 "y.tab.c"
+    break;
+
+  case 21:
+#line 243 "Parser.y"
+{
+	(yyval.myOperator) = (struct FuncOperator *) malloc (sizeof (struct FuncOperator));	
+	(yyval.myOperator)->leftOperator = (struct FuncOperator *) malloc (sizeof (struct FuncOperator));
+	(yyval.myOperator)->leftOperator->leftOperator = NULL;
+	(yyval.myOperator)->leftOperator->leftOperand = (yyvsp[-2].myOperand);
+	(yyval.myOperator)->leftOperator->right = NULL;
+	(yyval.myOperator)->leftOperand = NULL;
+	(yyval.myOperator)->right = (yyvsp[0].myOperator);
+	(yyval.myOperator)->code = (yyvsp[-1].whichOne);	
+
+}
+#line 1655 "y.tab.c"
+    break;
+
+  case 22:
+#line 256 "Parser.y"
+{
+	(yyval.myOperator) = (struct FuncOperator *) malloc (sizeof (struct FuncOperator));	
+	(yyval.myOperator)->leftOperator = (yyvsp[-3].myOperator);
+	(yyval.myOperator)->leftOperand = NULL;
+	(yyval.myOperator)->right = (yyvsp[0].myOperator);
+	(yyval.myOperator)->code = (yyvsp[-1].whichOne);	
+
+}
+#line 1668 "y.tab.c"
+    break;
+
+  case 23:
+#line 266 "Parser.y"
+{
+	(yyval.myOperator) = (yyvsp[-1].myOperator);
+
+}
+#line 1677 "y.tab.c"
+    break;
+
+  case 24:
+#line 272 "Parser.y"
+{
+	(yyval.myOperator) = (struct FuncOperator *) malloc (sizeof (struct FuncOperator));	
+	(yyval.myOperator)->leftOperator = NULL;
+	(yyval.myOperator)->leftOperand = (yyvsp[0].myOperand);
+	(yyval.myOperator)->right = NULL;	
+
+}
+#line 1689 "y.tab.c"
+    break;
+
+  case 25:
+#line 281 "Parser.y"
+{
+	(yyval.myOperator) = (struct FuncOperator *) malloc (sizeof (struct FuncOperator));	
+	(yyval.myOperator)->leftOperator = (yyvsp[0].myOperator);
+	(yyval.myOperator)->leftOperand = NULL;
+	(yyval.myOperator)->right = NULL;	
+	(yyval.myOperator)->code = '-';
+
+}
+#line 1702 "y.tab.c"
+    break;
+
+  case 26:
+#line 292 "Parser.y"
+{
+	(yyval.whichOne) = '-';
+}
+#line 1710 "y.tab.c"
+    break;
+
+  case 27:
+#line 297 "Parser.y"
+{
+	(yyval.whichOne) = '+';
+}
+#line 1718 "y.tab.c"
+    break;
+
+  case 28:
+#line 302 "Parser.y"
+{
+	(yyval.whichOne) = '*';
+}
+#line 1726 "y.tab.c"
+    break;
+
+  case 29:
+#line 307 "Parser.y"
+{
+	(yyval.whichOne) = '/';
+}
+#line 1734 "y.tab.c"
+    break;
+
+  case 30:
+#line 313 "Parser.y"
+{
+        // here we need to pre-pend the OrList to the AndList
+        // first we allocate space for this node
+        (yyval.myAndList) = (struct AndList *) malloc (sizeof (struct AndList));
+
+        // hang the OrList off of the left
+        (yyval.myAndList)->left = (yyvsp[-3].myOrList);
+
+        // hang the AndList off of the right
+        (yyval.myAndList)->rightAnd = (yyvsp[0].myAndList);
+
+}
+#line 1751 "y.tab.c"
+    break;
+
+  case 31:
+#line 327 "Parser.y"
+{
+        // just return the OrList!
+        (yyval.myAndList) = (struct AndList *) malloc (sizeof (struct AndList));
+        (yyval.myAndList)->left = (yyvsp[-1].myOrList);
+        (yyval.myAndList)->rightAnd = NULL;
+}
+#line 1762 "y.tab.c"
+    break;
+
+  case 32:
+#line 336 "Parser.y"
+{
+        // here we have to hang the condition off the left of the OrList
+        (yyval.myOrList) = (struct OrList *) malloc (sizeof (struct OrList));
+        (yyval.myOrList)->left = (yyvsp[-2].myComparison);
+        (yyval.myOrList)->rightOr = (yyvsp[0].myOrList);
+}
+#line 1773 "y.tab.c"
+    break;
+
+  case 33:
+#line 344 "Parser.y"
+{
+        // nothing to hang off of the right
+        (yyval.myOrList) = (struct OrList *) malloc (sizeof (struct OrList));
+        (yyval.myOrList)->left = (yyvsp[0].myComparison);
+        (yyval.myOrList)->rightOr = NULL;
+}
+#line 1784 "y.tab.c"
+    break;
+
+  case 34:
+#line 353 "Parser.y"
+{
+        // in this case we have a simple literal/variable comparison
+        (yyval.myComparison) = (yyvsp[-1].myComparison);
+        (yyval.myComparison)->left = (yyvsp[-2].myBoolOperand);
+        (yyval.myComparison)->right = (yyvsp[0].myBoolOperand);
+}
+#line 1795 "y.tab.c"
+    break;
+
+  case 35:
+#line 362 "Parser.y"
+{
+        // construct and send up the comparison
+        (yyval.myComparison) = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
+        (yyval.myComparison)->code = LESS_THAN;
+}
+#line 1805 "y.tab.c"
+    break;
+
+  case 36:
+#line 369 "Parser.y"
+{
+        // construct and send up the comparison
+        (yyval.myComparison) = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
+        (yyval.myComparison)->code = GREATER_THAN;
+}
+#line 1815 "y.tab.c"
+    break;
+
+  case 37:
+#line 376 "Parser.y"
+{
+        // construct and send up the comparison
+        (yyval.myComparison) = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
+        (yyval.myComparison)->code = EQUALS;
+}
+#line 1825 "y.tab.c"
+    break;
+
+  case 38:
+#line 384 "Parser.y"
+{
+        // construct and send up the operand containing the string
+        (yyval.myBoolOperand) = (struct Operand *) malloc (sizeof (struct Operand));
+        (yyval.myBoolOperand)->code = STRING;
+        (yyval.myBoolOperand)->value = (yyvsp[0].actualChars);
+}
+#line 1836 "y.tab.c"
+    break;
+
+  case 39:
+#line 392 "Parser.y"
+{
+        // construct and send up the operand containing the FP number
+        (yyval.myBoolOperand) = (struct Operand *) malloc (sizeof (struct Operand));
+        (yyval.myBoolOperand)->code = DOUBLE;
+        (yyval.myBoolOperand)->value = (yyvsp[0].actualChars);
+}
+#line 1847 "y.tab.c"
+    break;
+
+  case 40:
+#line 400 "Parser.y"
+{
+        // construct and send up the operand containing the integer
+        (yyval.myBoolOperand) = (struct Operand *) malloc (sizeof (struct Operand));
+        (yyval.myBoolOperand)->code = INT;
+        (yyval.myBoolOperand)->value = (yyvsp[0].actualChars);
+}
+#line 1858 "y.tab.c"
+    break;
+
+  case 41:
+#line 408 "Parser.y"
+{
+        // construct and send up the operand containing the name
+        (yyval.myBoolOperand) = (struct Operand *) malloc (sizeof (struct Operand));
+        (yyval.myBoolOperand)->code = NAME;
+        (yyval.myBoolOperand)->value = (yyvsp[0].actualChars);
+}
+#line 1869 "y.tab.c"
+    break;
+
+  case 42:
+#line 420 "Parser.y"
+{
+        // construct and send up the operand containing the FP number
+        (yyval.myOperand) = (struct FuncOperand *) malloc (sizeof (struct FuncOperand));
+        (yyval.myOperand)->code = DOUBLE;
+        (yyval.myOperand)->value = (yyvsp[0].actualChars);
+}
+#line 1880 "y.tab.c"
+    break;
+
+  case 43:
+#line 428 "Parser.y"
+{
+        // construct and send up the operand containing the integer
+        (yyval.myOperand) = (struct FuncOperand *) malloc (sizeof (struct FuncOperand));
+        (yyval.myOperand)->code = INT;
+        (yyval.myOperand)->value = (yyvsp[0].actualChars);
+}
+#line 1891 "y.tab.c"
+    break;
+
+  case 44:
+#line 436 "Parser.y"
+{
+        // construct and send up the operand containing the name
+        (yyval.myOperand) = (struct FuncOperand *) malloc (sizeof (struct FuncOperand));
+        (yyval.myOperand)->code = NAME;
+        (yyval.myOperand)->value = (yyvsp[0].actualChars);
+}
+#line 1902 "y.tab.c"
     break;
 
 
-#line 1485 "y.tab.c"
+#line 1906 "y.tab.c"
 
       default: break;
     }
@@ -1713,6 +2134,5 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 168 "Parser.y"
-
+#line 444 "Parser.y"
 

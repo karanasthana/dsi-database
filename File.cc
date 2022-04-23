@@ -9,7 +9,6 @@
 #include <string.h>
 #include <iostream>
 
-
 Page :: Page () {
 	curSizeInBytes = sizeof (int);
 	numRecs = 0;

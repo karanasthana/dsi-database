@@ -8,6 +8,9 @@
 #include "File.h"
 #include "Comparison.h"
 #include "ComparisonEngine.h"
+#include <string>
+#include <vector>
+using namespace std;
 
 struct att_pair {
 	char *name;
@@ -52,6 +55,14 @@ public:
 
 	// this composes a schema instance in-memory
 	Schema (char *fName, int num_atts, Attribute *atts);
+
+	Schema (Schema *sch, vector<int> attributesToKeep);
+
+	Schema(Schema *left, Schema *right);
+
+	void transToAlias (string aliasName);
+
+	void Print();
 
 	// this constructs a sort order structure that can be used to
 	// place a lexicographic ordering on the records using this type of schema

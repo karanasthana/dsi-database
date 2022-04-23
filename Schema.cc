@@ -36,6 +36,17 @@ Attribute *Schema :: GetAtts () {
 	return myAtts;
 }
 
+void Schema::transToAlias(string aliasName) {
+
+	for(int i = 0; i < numAtts; i++) {
+		string oldString(myAtts[i].name);
+		free(myAtts[i].name);
+		string updatedString(aliasName + "." + oldString);
+		myAtts[i].name = strdup(updatedString.c_str());
+	}
+
+}
+
 
 Schema :: Schema (char *fpath, int num_atts, Attribute *atts) {
 	fileName = strdup (fpath);
@@ -153,6 +164,50 @@ Schema :: Schema (char *fName, char *relName) {
 	}
 
 	fclose (foo);
+}
+
+Schema::Schema(Schema *left, Schema *right) {
+
+	int leftAttributes = left->numAtts;
+	int rightAttributes = right->numAtts;
+
+	numAtts = leftAttributes + rightAttributes;
+
+	myAtts = new Attribute[numAtts];
+
+	for(int i = 0; i < leftAttributes; i++) {
+		myAtts[i] = left->myAtts[i];
+	}
+	for(int j = 0; j < rightAttributes; j++) {
+		myAtts[leftAttributes+j] = right->myAtts[j];  
+	}
+	
+}
+
+
+Schema::Schema(Schema *sch, vector<int> attributesToKeep) {
+	numAtts = attributesToKeep.size();
+	myAtts = new Attribute[numAtts];
+
+	for(int i = 0; i < numAtts; i++) {
+		myAtts[i] = sch->myAtts[attributesToKeep[i]];
+	}
+
+}
+
+void Schema::Print() {
+
+	for(int i = 0; i < numAtts; i++) {
+		cout << "Att " << myAtts[i].name << ": ";
+		if(myAtts[i].myType == 0)
+			cout<<"INT"<<endl;
+		else if(myAtts[i].myType == 1)
+			cout<<"DOUBLE"<<endl;
+		else
+			cout<<"STRING"<<endl;
+		
+	}
+	
 }
 
 Schema :: ~Schema () {
