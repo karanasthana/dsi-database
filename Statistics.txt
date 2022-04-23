@@ -1,0 +1,40 @@
+Relation: part
+Number Of Tuples: 21433
+Attribute: p_container
+Number Of Distinct Values: 40
+Attribute: p_partkey
+Number Of Distinct Values: 200000
+End
+
+Relation: lineitem
+Number Of Tuples: 21433
+Attribute: l_shipmode
+Number Of Distinct Values: 7
+Attribute: l_shipinstruct
+Number Of Distinct Values: 4
+Attribute: l_partkey
+Number Of Distinct Values: 200000
+End
+
+Relation: orders
+Number Of Tuples: 2000405
+Attribute: o_orderkey
+Number Of Distinct Values: 1500000
+Attribute: o_custkey
+Number Of Distinct Values: 150000
+End
+
+Relation: customer
+Number Of Tuples: 2000405
+Attribute: c_custkey
+Number Of Distinct Values: 150000
+Attribute: c_nationkey
+Number Of Distinct Values: 25
+End
+
+Relation: nation
+Number Of Tuples: 2000405
+Attribute: n_nationkey
+Number Of Distinct Values: 25
+End
+

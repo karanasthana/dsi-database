@@ -1,207 +1,54 @@
 #include <iostream>
-#include <fstream>
-//include the google test dependencies
-#include <gtest/gtest.h>
-//declare the function(s) that you are testing
-#include "Pipe.h"
-#include "Sorted.h"
-#include "Record.h"
 #include "DBFile.h"
-#include "Schema.h"
 #include "BigQ.h"
-#include "test.h"
+#include "RelOp.h"
+#include "test_a3.h"
+// #include "test_a22.h"
+#include "Pipe.h"
+#include "DBFileSorted.h"
+#include "Record.h"
+#include "Schema.h"
+#include "Statistics.h"
 
-void GetMataDataFilePath(const char *fpath, char *metadataPath) {
-    strcpy(metadataPath, fpath);
-    strcat(metadataPath, ".metadata");
+#include <fstream>
+#include <gtest/gtest.h>
+#include <pthread.h>
+
+TEST(Statistics, TestGroupNameToRelationMapSize) {
+	Statistics stats;
+	stats.AddRel("orders",1500000);
+	unordered_map<string, Relation*> groupNameToRelationMap = stats.GetGroupNameToRelationMap();
+	EXPECT_EQ(1, groupNameToRelationMap.size());
+
+    char *rels[4] = { "lineitem", "nation", "region", "parts" };
+    int vals[4] = { 150000, 15, 10, 1400 };
+
+    for (int i = 0; i < 4; i++) {
+        stats.AddRel(rels[i], vals[i]);
+    }
+
+    groupNameToRelationMap = stats.GetGroupNameToRelationMap();
+    EXPECT_EQ(5, groupNameToRelationMap.size());
+}
+TEST(Statistics, TestGetRelationAttNumCount) {
+	Statistics statistics;
+    char *relName = "relation";
+    char *attName = "attribute";
+    string relNameWithAttName = string(relName) + "." + string(attName);
+    int numTuples = 1000;
+    int numDistincts = 25;
+    statistics.AddRel(relName, numTuples);
+    statistics.AddRel("karan", 1000);
+    statistics.AddRel("prateek", 1001);
+    statistics.AddRel("dbi", 100);
+    statistics.AddAtt(relName, attName, numDistincts);
+    statistics.AddAtt("dbi", "marks", 100);
+
+
+	EXPECT_EQ(numDistincts, statistics.GetRelationAttNumCount(relName, attName));
 }
 
-TEST(DBFile, TestCreate0) {
-    DBFile dbFile;
-    ASSERT_EQ(dbFile.Create(nullptr, heap, nullptr), 0);
-}
-
-TEST(DBFile, TestCreate1) {
-    DBFile dbFile;
-    ASSERT_EQ(dbFile.Create("nation_2.bin", heap, nullptr), 1);
-
-    FILE* f = fopen("nation_2.bin", "r");
-    ASSERT_TRUE(f != nullptr);
-}
-
-TEST(DBFile, TestOpen0) {
-    DBFile dbFile;
-    ASSERT_EQ(dbFile.Open(nullptr), 0);
-}
-
-TEST(DBFile, TestOpen1) {
-    DBFile dbFile;
-    ASSERT_EQ(dbFile.Open("nation.bin"), 1);
-
-    FILE* f = fopen("nation.bin", "r");
-    ASSERT_TRUE(f != nullptr);
-}
-
-TEST(SortedFile, TestCreateSortedRegionFile) {
-    DBFile* dbfile=new DBFile();
-  
-    char catalog_path[]="catalog";
-    char test[]="region";
-    
-    Schema* testSchema=new Schema(catalog_path,test);
-    OrderMaker* myOrderMaker1=new OrderMaker(testSchema);
-    int runlen=5;
-    struct 
-    {
-        OrderMaker* o; 
-        int l;
-    } startup = {myOrderMaker1, runlen};
-    
-    char* tempFilePath="region.bin";
-    int tempResult=dbfile->Create(tempFilePath, sorted, &startup);   
-    int result=dbfile->Open(tempFilePath);
-    EXPECT_EQ(1, result);
-    dbfile->Close();
-    delete dbfile;
-}
-
-TEST(SortedFile, TestCreateSortedNationFile) {
-    DBFile* dbfile=new DBFile();
-  
-    char catalog_path[]="catalog";
-    char test[]="nation";
-    
-    Schema* testSchema=new Schema(catalog_path,test);
-    OrderMaker* myOrderMaker1=new OrderMaker(testSchema);
-    int runlen=8;
-    struct 
-    {
-        OrderMaker* o; 
-        int l;
-    } startup = {myOrderMaker1, runlen};
-    
-    char* tempFilePath="nation.bin";
-    int tempResult=dbfile->Create(tempFilePath, sorted, &startup);   
-    int result=dbfile->Open(tempFilePath);
-    EXPECT_EQ(1, result);
-    dbfile->Close();
-    delete dbfile;
-}
-
-TEST (SortedFile, LoadRegionFileTest)
-{
-    char catalog_path[]="catalog";
-    char region[]="region";
-    char loadPath[]="data-files/region.tbl";
-    
-    Schema* testSchema=new Schema(catalog_path,region);
-    
-    OrderMaker* myOrderMaker1=new OrderMaker(testSchema);
-    int runlen=8;
-    struct 
-    {
-        OrderMaker* o; 
-        int l;
-    } startup = {myOrderMaker1, runlen};
-    
-    DBFile* dbfile=new DBFile();
-    
-    char* tempFilePath="region.bin";
-    
-    dbfile->Create(tempFilePath, sorted, &startup);
-    dbfile->Open(tempFilePath);
-    dbfile->Load(*testSchema, loadPath);
-    Page* tempPage=new Page();
-    delete tempPage;
-    delete dbfile;
-}
-
-TEST (SortedFile, LoadNationFileTest)
-{
-    char catalog_path[]="catalog";
-    char nation[]="nation";
-    char loadPath[]="data-files/nation.tbl";
-    
-    Schema* testSchema=new Schema(catalog_path,nation);
-    
-    OrderMaker* myOrderMaker1=new OrderMaker(testSchema);
-    int runlen=8;
-    struct 
-    {
-        OrderMaker* o; 
-        int l;
-    } startup = {myOrderMaker1, runlen};
-    
-    DBFile* dbfile=new DBFile();
-    
-    char* tempFilePath="nation.bin";
-    
-    dbfile->Create(tempFilePath, sorted, &startup);
-    dbfile->Open(tempFilePath);
-    dbfile->Load(*testSchema, loadPath);
-    Page* tempPage=new Page();
-    delete tempPage;
-    delete dbfile;
-}
-
-TEST(SortedFile, TestToCheckSortedFileOpenNegative) {
-    char catalog_path[]="catalog";
-    char nation[]="nation";
-    char loadPath[]="data-files/nation_fake.tbl";
-    
-    Schema* testSchema=new Schema(catalog_path,nation);
-    
-    OrderMaker* myOrderMaker1=new OrderMaker(testSchema);
-    int runlen=8;
-    struct 
-    {
-        OrderMaker* o; 
-        int l;
-    } startup = {myOrderMaker1, runlen};
-    
-    DBFile* dbfile=new DBFile();
-    
-    char* tempFilePath="nation_fake.bin";
-    
-    dbfile->Create(tempFilePath, sorted, &startup);
-    int a = dbfile->Open(tempFilePath);
-
-    ASSERT_EQ(0, a);
-}
-
-TEST(SortedFile, TestToCheckMetadataFileCreated) {
-    char catalog_path[]="catalog";
-    char nation[]="nation";
-    char loadPath[]="data-files/nation.tbl";
-    
-    Schema* testSchema=new Schema(catalog_path,nation);
-    
-    OrderMaker* myOrderMaker1=new OrderMaker(testSchema);
-    int runlen=8;
-    struct 
-    {
-        OrderMaker* o; 
-        int l;
-    } startup = {myOrderMaker1, runlen};
-    
-    DBFile* dbfile=new DBFile();
-    
-    char* tempFilePath="nation.bin";
-    
-    dbfile->Create(tempFilePath, sorted, &startup);
-    dbfile->Open(tempFilePath);
-    dbfile->Load(*testSchema, loadPath);
-
-    // Check Metadata file is created.
-    ifstream fIn;
-    char metadataPath[100];
-    GetMataDataFilePath(tempFilePath, metadataPath);
-    fIn.open(metadataPath);
-    ASSERT_TRUE(fIn.is_open());
-}
-
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+int main(int argc, char **argv){
+	testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
 }

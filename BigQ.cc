@@ -1,194 +1,162 @@
-#include <algorithm>
-#include <queue>
-
 #include "BigQ.h"
+#include "DBFile.h"
 
-Run::Run(File *bigQFile, off_t start, off_t end)
-{
-    tempFilePtr = bigQFile;
-
-    currPageIndex = start;
-    endPageIndex = end;
-
-    bufferPage = new Page();
-    tempFilePtr->GetPage(bufferPage, currPageIndex++);
-
-    currentRec = new Record();
-    bufferPage->GetFirst(currentRec);
+void* workerMain(void* arg) {
+    ((BigQ*) arg)->BigQMain();
+    return NULL;
 }
 
-int Run::Next(Record *current)
-{
-    current->Consume(currentRec);
-    if (!bufferPage->GetFirst(currentRec))
-    {
-        if (currPageIndex < endPageIndex)
-        {
-            bufferPage->EmptyItOut();
-            tempFilePtr->GetPage(bufferPage, currPageIndex++);
-            bufferPage->GetFirst(currentRec);
+void BigQ::BigQMain() {
+    priority_queue<Run*, vector<Run*>, RunComparer> runQueue(this->order);
+    priority_queue<Record*, vector<Record*>, RecordComparer> recordQueue (this->order);
+    vector<Record* > recBuff;
+    Record curRecord;
+
+    //Set disk based file for sorting
+    File file;
+    char* fileName = new char[100];
+    sprintf(fileName, "%d.bin", pthread_self());
+    file.Open(0, fileName);
+    //Buffer page used for disk based file
+    Page bufferPage;
+    int pageIndex = 0;
+    int pageCounter = 0;
+    //Retrieve all records from input pipe
+    while (this->in->Remove(&curRecord) == 1) {
+        Record* tmpRecord = new Record;
+        tmpRecord->Copy(&curRecord);
+        //Add to another page if current page is full
+        if (bufferPage.Append(&curRecord) == 0) {
+            pageCounter++;
+            bufferPage.EmptyItOut();
+
+            //Add to another run if current run is full
+            if (pageCounter == this->runlen) {
+                recordQueueToRun(recordQueue, runQueue, file, bufferPage, pageIndex);
+                recordQueue = priority_queue<Record*, vector<Record*>, RecordComparer> (this->order);
+                pageCounter = 0;
+            }
+
+            bufferPage.Append(&curRecord);
         }
-        else
-        {
-            return 0;
+
+        recordQueue.push(tmpRecord);
+    }
+    // Handle the last run
+    if (!recordQueue.empty()) {
+        recordQueueToRun(recordQueue, runQueue, file, bufferPage, pageIndex);
+        recordQueue = priority_queue<Record*, vector<Record*>, RecordComparer> (this->order);
+    }
+    // Merge for all runs
+    // DBFile dbFileHeap;
+    // dbFileHeap.Create("tempDifFile.bin", heap, nullptr);
+    Run* run;
+    Schema schema ("catalog", "supplier");
+//    cout << "2" << endl;
+    while (!runQueue.empty()) {
+        run = runQueue.top();
+        runQueue.pop();
+        // dbFileHeap.Add(*(run->topRecord));
+        Record* waitToInsert = new Record();
+        waitToInsert->Copy(run->topRecord);
+        // waitToInsert->Print(&schema);
+        this->out->Insert(waitToInsert);
+        if (run->UpdateTopRecord() == 1) {
+            runQueue.push(run);
         }
     }
+//    cout << "3" << endl;
+    // dbFileHeap.Close();
+    file.Close();
+    this->out->ShutDown();
+    remove(fileName);
+}
 
+//Used for puting records into a run, which is disk file based
+void BigQ::recordQueueToRun(priority_queue<Record*, vector<Record*>, RecordComparer>& recordQueue, 
+    priority_queue<Run*, vector<Run*>, RunComparer>& runQueue, File& file, Page& bufferPage, int& pageIndex) {
+
+    bufferPage.EmptyItOut();
+    int startIndex = pageIndex;
+    while (!recordQueue.empty()) {
+        Record* tmpRecord = new Record;
+        tmpRecord->Copy(recordQueue.top());
+        recordQueue.pop();
+        if (bufferPage.Append(tmpRecord) == 0) {
+            file.AddPage(&bufferPage, pageIndex++);
+            bufferPage.EmptyItOut();
+            bufferPage.Append(tmpRecord);
+        }
+    }
+    file.AddPage(&bufferPage, pageIndex++);
+    bufferPage.EmptyItOut();
+    Run* run = new Run(&file, startIndex, pageIndex - startIndex);
+    runQueue.push(run);
+}
+
+
+
+BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
+    pthread_t worker;
+    //Construct arguement used for worker thread
+    // this* this = new this;
+    this->in = &in;
+    this->out = &out;
+    this->order = &sortorder;
+    this->runlen = runlen;
+    pthread_create(&worker, NULL, workerMain, (void*) this);
+    // pthread_join(worker, NULL);
+}
+
+BigQ::~BigQ () {
+
+}
+
+Run::Run(File* file, int start, int length) {
+    fileBase = file;
+    startPage = start;
+    runLength = length;
+    curPage = start;
+    fileBase->GetPage(&bufferPage, startPage);
+    topRecord = new Record;
+    UpdateTopRecord();
+}
+
+int Run::UpdateTopRecord() {
+    //if bufferPage is full
+    if (bufferPage.GetFirst(topRecord) == 0) {
+        //if reach the last page
+        curPage++;
+        if (curPage >= startPage + runLength) {
+            return 0;
+        }
+        bufferPage.EmptyItOut();
+        fileBase->GetPage(&bufferPage, curPage);
+        bufferPage.GetFirst(topRecord);
+    }
     return 1;
 }
 
-Run::~Run()
-{
-    delete tempFilePtr;
-    delete bufferPage;
-    delete currentRec;
+RecordComparer::RecordComparer(OrderMaker* orderMaker) {
+    order = orderMaker;
 }
 
-// Worker thread.
-void *Worker(void *bigQ)
-{
-    auto *myBigQ = (BigQ *)bigQ;
-    myBigQ->ExecuteSort();
-    myBigQ->ExecuteMerge();
-    return nullptr;
+bool RecordComparer::operator () (Record* left, Record* right) {
+    ComparisonEngine comparisonEngine;
+    if (comparisonEngine.Compare(left, right, order) >= 0)
+        return true;
+    return false;
 }
 
-BigQ::BigQ(Pipe &input, Pipe &output, OrderMaker &sortOrder, int runLength)
-{
-    this->input = &input;
-    this->output = &output;
-    this->sortOrder = &sortOrder;
-    this->runLength = runLength;
-
-    bigQFile = new File();
-    bigQFile->Open(0, tempFileName);
-
-    comp = new ComparisonEngine();
-
-    pthread_t worker;
-    pthread_create(&worker, nullptr, Worker, (void *)this);
+RunComparer::RunComparer(OrderMaker* orderMaker) {
+    order = orderMaker;
 }
 
-void BigQ::ExecuteSort()
-{
-    int currentSize = 0, capacity = runLength * PAGE_SIZE;
-
-    Page tempPage;
-    off_t pageIndex = 0;
-
-    Record tempRec;
-    Record *copyRec;
-
-    vector<Record *> records;
-
-    while (input->Remove(&tempRec))
-    {
-        copyRec = new Record();
-        copyRec->Consume(&tempRec);
-
-        currentSize += copyRec->getRecordSize();
-
-        if (currentSize <= capacity)
-        {
-            records.push_back(copyRec);
-        }
-        else
-        {
-            sort(records.begin(), records.end(), [this](Record *left, Record *right)
-                 { return comp->Compare(left, right, sortOrder) < 0; });
-
-            for (auto &rec : records)
-            {
-                if (!tempPage.Append(rec))
-                {
-                    bigQFile->AddPage(&tempPage, pageIndex++);
-                    tempPage.EmptyItOut();
-                    tempPage.Append(rec);
-                }
-            }
-
-            if (tempPage.GetNumberOfRecs() > 0)
-            {
-                bigQFile->AddPage(&tempPage, pageIndex++);
-                tempPage.EmptyItOut();
-            }
-
-            runIndexes.push_back(pageIndex);
-
-            for (auto &rec : records)
-                delete rec;
-            records.clear();
-            records.push_back(copyRec);
-            currentSize = sizeof(int) + copyRec->getRecordSize();
-        }
-    }
-
-    sort(records.begin(), records.end(), [this](Record *left, Record *right)
-         { return comp->Compare(left, right, sortOrder) < 0; });
-
-    for (auto &rec : records)
-    {
-        if (!tempPage.Append(rec))
-        {
-            bigQFile->AddPage(&tempPage, pageIndex++);
-            tempPage.EmptyItOut();
-            tempPage.Append(rec);
-        }
-    }
-
-    if (tempPage.GetNumberOfRecs() > 0)
-    {
-        bigQFile->AddPage(&tempPage, pageIndex++);
-        tempPage.EmptyItOut();
-    }
-
-    runIndexes.push_back(pageIndex);
-
-    for (auto &rec : records)
-        delete rec;
-    records.clear();
+bool RunComparer::operator () (Run* left, Run* right) {
+    ComparisonEngine comparisonEngine;
+    if (comparisonEngine.Compare(left->topRecord, right->topRecord, order) >= 0)
+        return true;
+    return false;
 }
 
-void BigQ::ExecuteMerge()
-{
-    auto comparator = [this](Run *left, Run *right)
-    {
-        return comp->Compare(left->currentRec, right->currentRec, sortOrder) >= 0;
-    };
 
-    priority_queue<Run *, vector<Run *>, decltype(comparator)> PQ(comparator);
-
-    off_t prev = 0;
-    for (auto &index : runIndexes)
-    {
-        PQ.push(new Run(bigQFile, prev, index));
-        prev = index;
-    }
-
-    Record tempRec;
-    Run *tempRun;
-    while (!PQ.empty())
-    {
-        tempRun = PQ.top();
-        PQ.pop();
-
-        if (tempRun->Next(&tempRec))
-        {
-            PQ.push(tempRun);
-        }
-
-        output->Insert(&tempRec);
-    }
-    delete tempRun;
-
-    output->ShutDown();
-
-    bigQFile->Close();
-    remove(tempFileName);
-}
-
-BigQ::~BigQ()
-{
-    delete bigQFile;
-    delete comp;
-}
